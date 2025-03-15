@@ -15,7 +15,7 @@ export class SocketIOService {
     private maxReconnectAttempts = 5
     private reconnectDelay = 3000 // 3秒
     private reconnectTimer: number | null = null
-    private userStore: any
+    private userStore: ReturnType<typeof useUserStore> | null = null
 
     private constructor() { }
 
@@ -117,9 +117,9 @@ export class SocketIOService {
         })
 
         // 更新在线列表
-        this.socket.on(SocketEvents.UsersUpdate, (users: User[]) => {
-            logger.debug(`Received users update: ${users.length} users online`)
-            this.userStore.updateOnlineUsers(users)
+        this.socket.on(SocketEvents.UsersUpdate, (data: { type: string, onlineUsers: User[], user: User }) => {
+            logger.debug(`Received users update: ${data.onlineUsers.length} users online`)
+            this.userStore?.updateOnlineUsers(data)
         })
 
         // WebRTC 事件

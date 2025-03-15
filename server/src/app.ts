@@ -21,7 +21,12 @@ const app = express();
 const httpServer = createServer(app);
 
 // 安全中间件
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: false, // 禁用CSP
+    crossOriginEmbedderPolicy: false, // 禁用COEP
+    crossOriginOpenerPolicy: false, // 禁用COOP
+    crossOriginResourcePolicy: { policy: "cross-origin" } // 允许跨源资源
+}));
 
 // 速率限制
 if (process.env.NODE_ENV === 'production') {
@@ -41,7 +46,7 @@ if (config.COMPRESSION_ENABLED) {
 
 // 配置基础中间件
 app.use(cors({
-    origin: config.CORS_ORIGIN || '*',
+    origin: config.CORS_ORIGIN || "*", // 允许所有来源
     methods: ['GET', 'POST'],
     credentials: true
 }));
@@ -60,7 +65,7 @@ const services = createServices();
 // Setup Socket.IO
 const io = new Server(httpServer, {
     cors: {
-        origin: config.CORS_ORIGIN || '*',
+        origin: config.CORS_ORIGIN || "*", // 允许所有来源
         methods: ['GET', 'POST'],
         credentials: true
     },

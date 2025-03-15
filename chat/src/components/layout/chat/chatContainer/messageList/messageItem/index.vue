@@ -2,7 +2,7 @@
   <div :class="['flex mb-4', props.data.isSelf ? 'justify-end' : 'justify-start']">
     <div
       :class="[
-        'max-w-[70%]',
+        'max-w-[70%] break-words',
         props.data.isSelf ? 'bg-primary text-primary-foreground' : 'bg-muted',
         'rounded-lg py-2 px-4',
       ]"

@@ -1,7 +1,7 @@
 <template>
   <ScrollArea class="px-4 py-2">
     <UserItem
-      v-for="user in userStore.onlineUsers"
+      v-for="user in userStore.allUsers"
       :key="user.socketId"
       :user-data="user"
       :selected="selectedUser?.socketId === user.socketId"

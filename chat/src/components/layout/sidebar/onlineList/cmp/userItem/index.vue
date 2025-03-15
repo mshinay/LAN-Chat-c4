@@ -1,28 +1,27 @@
 <template>
   <div
     :class="[
-      'flex flex-row items-center justify-between px-4 py-3 duration-200 hover:bg-accent/70 cursor-pointer rounded-md',
+      'relative flex flex-row items-center justify-between px-4 py-3 duration-200 hover:bg-accent/70 cursor-pointer rounded-md',
       selectedClass,
     ]"
   >
-    <div class="flex flex-row gap-2 items-center">
-      <Avatar :class="[avatarSizeToClass]">
-        <AvatarImage src="" />
-      </Avatar>
-      <div>
-        <h2 class="text-sm font-medium">{{ userData.name }}</h2>
-        <p class="text-xs text-muted-foreground">
-          {{ chatStore.getOrCreateSession(userData.socketId).lastMessage?.content }}
-        </p>
-      </div>
+    <div class="w-full flex flex-col gap-2">
+      <h2 class="ml-1 text-sm font-medium w-fit">{{ userData.name }}</h2>
+      <p class="w-[75%] text-xs text-muted-foreground whitespace-nowrap truncate">
+        {{ chatStore.getOrCreateSession(userData.socketId).lastMessage?.content }}
+      </p>
     </div>
     <div
       :class="[
-        'w-4 h-4 rounded-full transition-all duration-200 scale-110 text-xs bg-red-500 text-white flex items-center justify-center',
+        'absolute top-1 left-0 w-3 h-3 rounded-full transition-all duration-200 scale-110 text-xs bg-red-500 text-white flex items-center justify-center p-2',
         chatStore.getOrCreateSession(userData.socketId).unread > 0 ? 'block' : 'hidden',
       ]"
     >
-      {{ chatStore.getOrCreateSession(userData.socketId).unread }}
+      {{
+        chatStore.getOrCreateSession(userData.socketId).unread < 100
+          ? chatStore.getOrCreateSession(userData.socketId).unread
+          : '99'
+      }}
     </div>
     <!-- <div
       :class="[
@@ -51,10 +50,6 @@ const props = withDefaults(
     avatarSize: 'sm',
   },
 )
-
-const avatarSizeToClass = computed(() => {
-  return props.avatarSize === 'sm' ? 'size-7' : props.avatarSize === 'md' ? 'size-8' : 'size-9'
-})
 
 const selectedClass = computed(() => {
   return props.selected

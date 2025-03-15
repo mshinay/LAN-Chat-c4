@@ -3,9 +3,7 @@ import { ref, computed, watch } from 'vue'
 import type { Message, ChatSession } from '@/types/message'
 import { webRTCService } from '@/lib/webrtc'
 import { logger } from '@/lib/utils/logger'
-
-// 本地存储键
-const STORAGE_KEY = 'lan-chat-sessions'
+import { getRandomId } from '@/lib/random'
 
 // 最大消息历史记录数
 const MAX_MESSAGES_PER_SESSION = 100
@@ -19,35 +17,6 @@ export const useChatStore = defineStore('chat', () => {
     // 新消息
     const unreadNewMessage = ref<Message | null>(null)
 
-    // 初始化 - 从本地存储加载会话
-    const initSessions = () => {
-        try {
-            const savedSessions = localStorage.getItem(STORAGE_KEY)
-            if (savedSessions) {
-                const parsed = JSON.parse(savedSessions)
-                // 将数组转换回Map
-                sessions.value = new Map(Object.entries(parsed))
-                logger.info(`Loaded ${sessions.value.size} sessions from local storage`)
-            }
-        } catch (error) {
-            logger.error('Failed to load sessions from local storage:', error)
-        }
-    }
-
-    // 保存会话到本地存储
-    const saveSessions = () => {
-        try {
-            // 将Map转换为对象以便JSON序列化
-            const sessionsObj = Object.fromEntries(sessions.value.entries())
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionsObj))
-            logger.debug('Sessions saved to local storage')
-        } catch (error) {
-            logger.error('Failed to save sessions to local storage:', error)
-        }
-    }
-
-    // 监听会话变化，保存到本地存储
-    watch(sessions.value, saveSessions, { deep: true })
 
     // 当前会话
     const currentSession = computed(() =>
@@ -90,7 +59,7 @@ export const useChatStore = defineStore('chat', () => {
         if (!currentSessionId.value || !content.trim()) return
 
         const message: Message = {
-            id: crypto.randomUUID(),
+            id: getRandomId(),
             content: content.trim(),
             senderId: webRTCService.localSocketId,
             timestamp: Date.now(),
@@ -111,8 +80,6 @@ export const useChatStore = defineStore('chat', () => {
         webRTCService.sendMessage(currentSessionId.value, JSON.stringify(message))
         logger.debug(`Message sent to ${currentSessionId.value}`)
 
-        // 保存会话
-        saveSessions()
     }
 
     // 接收消息
@@ -135,8 +102,7 @@ export const useChatStore = defineStore('chat', () => {
             logger.debug(`Message received in current session ${sessionId}`)
         }
 
-        // 保存会话
-        saveSessions()
+
     }
 
     // 清理会话
@@ -146,7 +112,7 @@ export const useChatStore = defineStore('chat', () => {
             currentSessionId.value = null
         }
         logger.info(`Session cleared: ${sessionId}`)
-        saveSessions()
+
     }
 
     // 清理所有会话
@@ -154,17 +120,16 @@ export const useChatStore = defineStore('chat', () => {
         sessions.value.clear()
         currentSessionId.value = null
         logger.info('All sessions cleared')
-        saveSessions()
+
     }
 
-    // 初始化
-    initSessions()
+
 
     return {
         currentSessionId,
         currentSession,
         unreadNewMessage,
-        sessionList,
+        sessions,
         getOrCreateSession,
         selectSession,
         sendMessage,

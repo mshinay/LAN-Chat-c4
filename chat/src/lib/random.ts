@@ -11,4 +11,12 @@ export function getRandomName() {
     return `${randomSound}${randomAnimal}#${Date.now().toString().slice(-3)}`;
 }
 
+export function getRandomId(): string {
+    if (typeof crypto !== "undefined") {
+        return crypto.randomUUID();
+    }
+    const timestamp = Date.now().toString(36); // 转换为 36 进制
+    const randomPart = Math.random().toString(36).substring(2, 10); // 随机数去掉 "0."
+    return `${timestamp}-${randomPart}`;
+}
 

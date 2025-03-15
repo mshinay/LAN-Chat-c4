@@ -1,9 +1,6 @@
 <template>
   <div class="flex flex-row items-center">
     <h2 class="mr-3 text-sm sm:text-base">{{ name }}</h2>
-    <Avatar :class="[avatarSizeToClass]">
-      <AvatarImage :src="avatarUrl" />
-    </Avatar>
   </div>
 </template>
 

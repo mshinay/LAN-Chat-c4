@@ -15,16 +15,24 @@ export const setupSocketIO = (io: Server, services: Services) => {
 
         // 客户端立即发送用户加入连接
         socket.on(SocketEvents.UserJoin, (user: User) => {
-            userService.addUser(socket.id, user);
+            userService.addUser(socket.id, { ...user, isOnline: true });
             // 通知全部客户端更新在线列表
-            io.emit(SocketEvents.UsersUpdate, userService.getOnlineUsers());
+            io.emit(SocketEvents.UsersUpdate, {
+                type: "add",
+                onlineUsers: userService.getOnlineUsers(),
+                user: user
+            });
             logger.info(`User joined: ${user.name} (${socket.id})`);
         });
 
         // 客户端断开连接
         socket.on(SocketEvents.Disconnect, () => {
+            io.emit(SocketEvents.UsersUpdate, {
+                type: "remove",
+                onlineUsers: userService.getOnlineUsers(),
+                user: userService.getUser(socket.id)
+            });
             userService.removeUser(socket.id);
-            io.emit(SocketEvents.UsersUpdate, userService.getOnlineUsers());
             logger.info(`User disconnected: ${socket.id}`);
         });
 

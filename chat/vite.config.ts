@@ -40,16 +40,6 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true,
       // 启用源码映射（仅在非生产环境）
       sourcemap: !isProd,
-      // 代码分割策略
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            'vue-vendor': ['vue', 'vue-router', 'pinia'],
-            'socket-vendor': ['socket.io-client'],
-            'ui-vendor': ['tailwindcss']
-          }
-        }
-      },
       // 压缩选项
       minify: 'terser',
       terserOptions: {
@@ -69,7 +59,9 @@ export default defineConfig(({ mode }) => {
       proxy: {
         '/socket.io': {
           target: 'http://localhost:3000',
-          ws: true
+          ws: true,
+          changeOrigin: true,
+          secure: false
         }
       }
     },

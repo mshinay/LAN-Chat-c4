@@ -21,7 +21,8 @@ export class UserService {
         const newUser: User = {
             socketId,
             name: user.name || 'Anonymous',
-            joinedAt: user.joinedAt || new Date().toISOString()
+            joinedAt: user.joinedAt || new Date().toISOString(),
+            isOnline: user.isOnline || true
         };
 
         this.onlineUsers.set(socketId, newUser);

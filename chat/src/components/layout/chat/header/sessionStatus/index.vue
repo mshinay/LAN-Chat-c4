@@ -1,14 +1,12 @@
 <template>
   <div>
     <div class="flex flex-row items-center gap-4" v-if="currentSessionUser?.socketId">
-      <div class="flex items-center justify-center">
-        <Avatar class="size-9">
-          <AvatarImage src="" />
-        </Avatar>
-      </div>
+      <div class="flex items-center justify-center"></div>
       <div class="flex flex-col justify-center">
         <h2 class="text-sm font-medium text-center">{{ currentSessionUser?.name }}</h2>
-        <p class="text-xs text-muted-foreground text-left">在线</p>
+        <p class="text-xs text-muted-foreground text-left">
+          {{ isOnline }}
+        </p>
       </div>
     </div>
     <div class="text-sm text-muted-foreground italic" v-else>选择一个用户以开始聊天....</div>
@@ -24,6 +22,9 @@ import { computed } from 'vue'
 const chatStore = useChatStore()
 const userStore = useUserStore()
 const currentSessionUser = computed(() =>
-  userStore.onlineUsers.find((user) => user.socketId === chatStore.currentSessionId),
+  userStore.allUsers.find((user) => user.socketId === chatStore.currentSessionId),
 )
+const isOnline = computed(() => {
+  return userStore.getUserBySocketId(chatStore.currentSessionId)?.isOnline ? '在线' : '离线'
+})
 </script>
