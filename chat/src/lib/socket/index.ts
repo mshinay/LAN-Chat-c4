@@ -118,7 +118,7 @@ export class SocketIOService {
 
         // 更新在线列表
         this.socket.on(SocketEvents.UsersUpdate, (data: { type: string, onlineUsers: User[], user: User }) => {
-            logger.debug(`Received users update: ${data.onlineUsers.length} users online`)
+            logger.debug(`Received users update: ${data?.onlineUsers?.length} users online`)
             this.userStore?.updateOnlineUsers(data)
         })
 

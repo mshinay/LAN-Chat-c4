@@ -25,6 +25,6 @@ const currentSessionUser = computed(() =>
   userStore.allUsers.find((user) => user.socketId === chatStore.currentSessionId),
 )
 const isOnline = computed(() => {
-  return userStore.getUserBySocketId(chatStore.currentSessionId)?.isOnline ? '在线' : '离线'
+  return userStore.getUserBySocketId(chatStore?.currentSessionId ?? '')?.isOnline ? '在线' : '离线'
 })
 </script>

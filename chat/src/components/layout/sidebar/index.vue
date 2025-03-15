@@ -1,7 +1,7 @@
 <template>
-  <div class="flex flex-col h-full overflow-hidden border-r">
+  <div class="flex flex-col h-full overflow-hidden border-r relative">
     <OnlineHeader class="hidden md:flex" />
-    <GlobalSearch class="px-4 py-2" />
+    <GlobalSearch />
     <OnlineList />
   </div>
 </template>

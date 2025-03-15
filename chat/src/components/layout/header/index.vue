@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-row justify-between px-8 py-4 h-20 border-b sticky top-0 z-10 shadow-sm">
+  <div class="flex flex-row justify-between px-8 py-4 h-20 border-b shadow-sm">
     <!-- 左侧Logo部分 -->
     <Logo brand-name="LAN Chat" des="点对点局域网聊天" :size="isMobile ? 'sm' : 'md'" />
     <!-- 中间搜索部分 - 在移动端隐藏 -->

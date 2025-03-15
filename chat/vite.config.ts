@@ -45,7 +45,7 @@ export default defineConfig(({ mode }) => {
       terserOptions: {
         compress: {
           drop_console: isProd, // 生产环境删除console
-          drop_debugger: isProd // 生产环境删除debugger
+          drop_debugger: isProd,// 生产环境删除debugger
         }
       },
       // 启用CSS代码分割
@@ -56,14 +56,14 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 1000
     },
     server: {
-      proxy: {
-        '/socket.io': {
-          target: 'http://localhost:3000',
-          ws: true,
-          changeOrigin: true,
-          secure: false
-        }
-      }
+      // proxy: {
+      //   '/socket.io': {
+      //     target: 'http://localhost:3000',
+      //     ws: true,
+      //     changeOrigin: true,
+      //     secure: false
+      //   }
+      // }
     },
     // 优化依赖预构建
     optimizeDeps: {

@@ -1,5 +1,5 @@
 <template>
-  <div class="md:hidden">
+  <div class="md:hidden px-4 py-2">
     <Combobox by="label">
       <ComboboxAnchor class="w-full">
         <div class="relative w-full items-center">

@@ -33,6 +33,7 @@ export const useUserStore = defineStore('user', () => {
                 name,
                 joinedAt: new Date().toISOString()
             }
+            console.log('currentUser', currentUser.value)
             // 发送用户加入连接
             socketService.emit(SocketEvents.UserJoin, currentUser.value)
             logger.info(`User initialized: ${name} (${socketId})`)
@@ -66,7 +67,6 @@ export const useUserStore = defineStore('user', () => {
                     chatStore.clearSession(data.user.socketId)
                 } else {
                     allUsers.value.find(user => user.socketId === data.user.socketId)!.isOnline = false
-                    console.log('allUsers', ...allUsers.value)
                     allUsers.value = [...allUsers.value]
                 }
             }
@@ -75,8 +75,10 @@ export const useUserStore = defineStore('user', () => {
     }
 
     const initUsers = (users: User[]) => {
-        allUsers.value = users.filter(user => user.socketId !== currentUser.value?.socketId)
-        onlineUsers.value = users.filter(user => user.socketId !== currentUser.value?.socketId)
+        // 确保users是数组
+        const usersArray = Array.isArray(users) ? users : []
+        allUsers.value = usersArray.filter(user => user.socketId !== currentUser.value?.socketId)
+        onlineUsers.value = usersArray.filter(user => user.socketId !== currentUser.value?.socketId)
     }
 
 

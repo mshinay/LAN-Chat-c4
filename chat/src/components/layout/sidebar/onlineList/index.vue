@@ -1,5 +1,5 @@
 <template>
-  <ScrollArea class="px-4 py-2">
+  <ScrollArea class="px-4 py-2 flex-1">
     <UserItem
       v-for="user in userStore.allUsers"
       :key="user.socketId"
@@ -23,6 +23,8 @@ import { webRTCService } from '@/lib/webrtc'
 const userStore = useUserStore()
 const chatStore = useChatStore()
 const selectedUser = ref<User | null>(null)
+
+// 确保用户列表是数组
 
 const handleClickUser = (user: User) => {
   selectedUser.value = user
