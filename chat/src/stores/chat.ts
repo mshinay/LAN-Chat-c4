@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
-import type { Message, ChatSession } from '@/types/message'
+import type { Message, ChatSession, TextMessage, FileMessage } from '@/types/message'
 import { webRTCService } from '@/lib/webrtc'
 import { logger } from '@/lib/utils/logger'
 import { getRandomId } from '@/lib/random'
@@ -27,8 +27,8 @@ export const useChatStore = defineStore('chat', () => {
     const sessionList = computed(() => {
         const list = Array.from(sessions.value.values())
         return list.sort((a, b) => {
-            const timeA = a.lastMessage?.timestamp || 0
-            const timeB = b.lastMessage?.timestamp || 0
+            const timeA = a.lastMessage?.timestamp ? new Date(a.lastMessage.timestamp).getTime() : 0
+            const timeB = b.lastMessage?.timestamp ? new Date(b.lastMessage.timestamp).getTime() : 0
             return timeB - timeA // 降序排列，最新的在前面
         })
     })
@@ -54,20 +54,61 @@ export const useChatStore = defineStore('chat', () => {
         logger.debug(`Selected session: ${sessionId}`)
     }
 
-    // 发送消息
-    const sendMessage = async (content: string) => {
+    // 发送文本消息
+    const sendTextMessage = async (content: string) => {
         if (!currentSessionId.value || !content.trim()) return
 
-        const message: Message = {
+        const message: TextMessage = {
             id: getRandomId(),
             content: content.trim(),
             senderId: webRTCService.localSocketId,
-            timestamp: Date.now(),
+            timestamp: new Date().toISOString(),
             type: 'text'
         }
 
-        // 添加到本地会话
-        const session = getOrCreateSession(currentSessionId.value)
+        // 添加到本地会话并发送
+        addMessageToSession(currentSessionId.value, message)
+        webRTCService.sendMessage(currentSessionId.value, JSON.stringify(message))
+        logger.debug(`Text message sent to ${currentSessionId.value}`)
+    }
+
+    // 发送文件消息
+    const sendFile = async (file: File) => {
+        if (!currentSessionId.value || !file) return false
+
+        try {
+            // 使用WebRTC服务发送文件
+            const success = await webRTCService.sendFile(currentSessionId.value, file)
+            return success
+        } catch (error) {
+            logger.error('Error sending file:', error)
+            return false
+        }
+    }
+
+    // 发送任意类型的消息
+    const sendMessage = async (targetId: string, messageData: string) => {
+        try {
+            const message = JSON.parse(messageData) as Message
+
+            // 添加到本地会话
+            addMessageToSession(targetId, message)
+
+            // 通过WebRTC发送消息
+            if (message.type === 'text') {
+                webRTCService.sendMessage(targetId, messageData)
+            }
+
+            return true
+        } catch (error) {
+            logger.error('Error sending message:', error)
+            return false
+        }
+    }
+
+    // 添加消息到会话
+    const addMessageToSession = (sessionId: string, message: Message) => {
+        const session = getOrCreateSession(sessionId)
         session.messages.push(message)
         session.lastMessage = message
 
@@ -75,11 +116,6 @@ export const useChatStore = defineStore('chat', () => {
         if (session.messages.length > MAX_MESSAGES_PER_SESSION) {
             session.messages = session.messages.slice(-MAX_MESSAGES_PER_SESSION)
         }
-
-        // 通过WebRTC发送消息
-        webRTCService.sendMessage(currentSessionId.value, JSON.stringify(message))
-        logger.debug(`Message sent to ${currentSessionId.value}`)
-
     }
 
     // 接收消息
@@ -101,8 +137,6 @@ export const useChatStore = defineStore('chat', () => {
         } else {
             logger.debug(`Message received in current session ${sessionId}`)
         }
-
-
     }
 
     // 清理会话
@@ -112,7 +146,6 @@ export const useChatStore = defineStore('chat', () => {
             currentSessionId.value = null
         }
         logger.info(`Session cleared: ${sessionId}`)
-
     }
 
     // 清理所有会话
@@ -120,18 +153,18 @@ export const useChatStore = defineStore('chat', () => {
         sessions.value.clear()
         currentSessionId.value = null
         logger.info('All sessions cleared')
-
     }
-
-
 
     return {
         currentSessionId,
         currentSession,
         unreadNewMessage,
         sessions,
+        sessionList,
         getOrCreateSession,
         selectSession,
+        sendTextMessage,
+        sendFile,
         sendMessage,
         receiveMessage,
         clearSession,

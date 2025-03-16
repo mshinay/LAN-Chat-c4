@@ -56,7 +56,7 @@ app.use(express.urlencoded({ extended: true }));
 // 设置静态文件目录
 const publicPath = path.join(__dirname, '../public');
 app.use(express.static(publicPath, {
-    maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0 // 生产环境缓存1天
+    // maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0 // 生产环境缓存1天
 }));
 
 // 初始化服务
