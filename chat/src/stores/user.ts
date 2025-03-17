@@ -4,7 +4,7 @@ import { socketService } from '@/lib/socket'
 import type { User } from '@/types/user'
 import { SocketEvents } from '@/types/socket'
 import { logger } from '@/lib/utils/logger'
-import { getRandomName } from '@/lib/random'
+import { getRandomName } from '@/lib/utils/random'
 import { useChatStore } from './chat'
 
 export const useUserStore = defineStore('user', () => {

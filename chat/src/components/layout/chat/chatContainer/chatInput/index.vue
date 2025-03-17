@@ -13,13 +13,12 @@
       @click="handleUploadFile"
       :disabled="!chatStore.currentSessionId || isUploading"
     >
-      <Paperclip :class="{ 'animate-spin': isUploading }" />
-      {{ isUploading ? '上传中...' : '发送文件' }}
+      <Paperclip :class="[isUploading ? 'animate-spin' : '', 'hidden md:block']" />
+      <span class="hidden md:block">{{ isUploading ? '上传中...' : '发送文件' }}</span>
+      <Paperclip :class="['block md:hidden', isUploading ? 'animate-spin' : '']" />
     </Button>
-    <Button type="submit" @click="handleSendMessage" :disabled="!chatStore.currentSessionId">
-      发送
-    </Button>
-    <input type="file" multiple ref="fileInput" class="hidden" @change="handleFileChange" />
+    <Button @click="handleSendMessage" :disabled="!chatStore.currentSessionId"> 发送 </Button>
+    <input type="file" ref="fileInput" class="hidden" @change="handleFileChange" />
   </div>
 </template>
 
@@ -56,12 +55,12 @@ const handleFileChange = async (e: Event) => {
 
   const file = files[0]
 
-  // 检查文件大小 (限制为50MB)
-  const MAX_FILE_SIZE = 1000 * 1024 * 1024 // 50MB
+  // 检查文件大小 (限制为1000MB)
+  const MAX_FILE_SIZE = 1000 * 1024 * 1024 // 100MB
   if (file.size > MAX_FILE_SIZE) {
     toast({
       title: '文件过大',
-      description: '文件大小不能超过50MB',
+      description: '文件大小不能超过100MB',
       variant: 'destructive',
     })
     return
@@ -70,20 +69,10 @@ const handleFileChange = async (e: Event) => {
   try {
     isUploading.value = true
 
-    // 显示上传开始提示
-    toast({
-      title: '文件上传中',
-      description: `正在上传: ${file.name} (${formatFileSize(file.size)})`,
-    })
-
     // 发送文件
     const success = await chatStore.sendFile(file)
 
     if (success) {
-      toast({
-        title: '文件上传成功',
-        description: `${file.name} 已发送`,
-      })
     } else {
       toast({
         title: '文件上传失败',
@@ -105,13 +94,5 @@ const handleFileChange = async (e: Event) => {
       fileInput.value.value = ''
     }
   }
-}
-
-// 格式化文件大小
-const formatFileSize = (bytes: number): string => {
-  if (bytes < 1024) return bytes + ' B'
-  else if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB'
-  else if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB'
-  else return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB'
 }
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-1 flex-col">
     <ScrollArea class="flex-1" ref="scrollAreaRef">
       <MessageList />
     </ScrollArea>
@@ -45,7 +45,7 @@ watch(
       const sender = userStore.onlineUsers.find((user) => user.socketId === newMessage.senderId)
       toast({
         title: sender?.name || '未知用户',
-        description: newMessage.content,
+        description: newMessage.type === 'text' ? newMessage.content : newMessage.fileName,
         duration: 3000,
         action: h(
           ToastAction,

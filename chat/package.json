@@ -20,6 +20,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "embla-carousel-vue": "^8.5.2",
+    "file-type": "^20.4.1",
     "localforage": "^1.10.0",
     "lucide-vue-next": "^0.479.0",
     "pinia": "^2.1.7",

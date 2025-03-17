@@ -3,6 +3,7 @@ import { socketService } from '../socket'
 import type { Message, FileMessage } from '@/types/message'
 import { useChatStore } from '@/stores/chat'
 import { logger } from '../utils/logger'
+import { encodeMessage, decodeMessage, generateBlobURL } from '../utils/file'
 import type { FileTransferProgress } from '@/types/file'
 
 
@@ -14,7 +15,6 @@ export class WebRTCServices {
     private readonly MAX_RETRIES = 3
     private readonly RETRY_DELAY = 2000 // 2秒
     public localSocketId: string = ''
-
     // 文件传输相关
     private fileTransfers: Map<string, FileTransferProgress> = new Map()
     private fileChunks: Map<string, Uint8Array[]> = new Map()
@@ -146,14 +146,13 @@ export class WebRTCServices {
 
         dataChannel.onmessage = (event) => {
             try {
-                // 检查是否是文件数据
                 if (event.data instanceof ArrayBuffer) {
+
                     this.handleFileChunk(socketId, event.data)
                     return
                 }
-
                 const data = JSON.parse(event.data)
-
+                console
                 // 处理文件传输控制消息
                 if (data.type === 'file-meta') {
                     this.handleFileMetadata(socketId, data)
@@ -328,23 +327,8 @@ export class WebRTCServices {
                     continue
                 }
 
-                // 创建包含文件ID的数据包
-                const fileChunk = new ArrayBuffer(chunk.length + 36) // 36字节用于存储fileId
-                const view = new DataView(fileChunk)
-
-                // 将fileId写入前36个字节 (使用UTF-8编码)
-                const encoder = new TextEncoder()
-                const fileIdBytes = encoder.encode(fileId)
-                for (let i = 0; i < fileIdBytes.length && i < 36; i++) {
-                    view.setUint8(i, fileIdBytes[i])
-                }
-
-                // 将文件数据写入剩余部分
-                const fileChunkData = new Uint8Array(fileChunk, 36)
-                fileChunkData.set(chunk)
-
-                // 发送数据包
-                dataChannel.send(fileChunk)
+                const encodedMessage = encodeMessage(fileId, chunk)
+                dataChannel.send(encodedMessage)
 
                 offset += chunk.length
                 progress.receivedSize = offset
@@ -407,33 +391,27 @@ export class WebRTCServices {
     }
 
     // 处理接收到的文件块
-    private handleFileChunk(socketId: string, chunk: ArrayBuffer) {
-        // 从数据包中提取文件ID (前36字节)
-        const decoder = new TextDecoder()
-        const fileIdBytes = new Uint8Array(chunk, 0, 36)
-        const fileId = decoder.decode(fileIdBytes).trim()
+    private handleFileChunk(socketId: string, data: ArrayBuffer) {
+        const { fileId, chunk } = decodeMessage(data)
 
-        // 获取实际文件数据 (跳过前36字节)
-        const fileData = new Uint8Array(chunk.slice(36))
-
-        const progress = this.fileTransfers.get(fileId)
-        const chunks = this.fileChunks.get(fileId)
-
-        if (!progress || !chunks) {
-            logger.error(`Received file chunk for unknown file: ${fileId}`)
+        if (!fileId) {
+            logger.error(`Received file chunk but no active file transfer from ${socketId}`)
             return
         }
 
+        const progress = this.fileTransfers.get(fileId)!
+        const chunks = this.fileChunks.get(fileId)!
+
         // 添加块
-        chunks.push(fileData)
+        chunks.push(new Uint8Array(chunk))
 
         // 更新进度
-        progress.receivedSize += fileData.byteLength
+        progress.receivedSize += chunk.byteLength
         progress.progress = Math.floor((progress.receivedSize / progress.size) * 100)
     }
 
     // 处理文件传输完成
-    private handleFileComplete(socketId: string, data: any) {
+    private async handleFileComplete(socketId: string, data: any) {
         const { fileId, fileName, fileSize } = data
 
         const progress = this.fileTransfers.get(fileId)
@@ -460,8 +438,7 @@ export class WebRTCServices {
             })
 
             // 创建Blob并生成URL
-            const blob = new Blob(chunks, { type: this.guessFileType(fileName) })
-            const url = URL.createObjectURL(blob)
+            const { blobUrl, mimeType } = await generateBlobURL(chunks, fileName)
 
             // 更新状态为完成
             progress.status = 'completed'
@@ -476,10 +453,10 @@ export class WebRTCServices {
                 timestamp: new Date().toISOString(),
                 fileName,
                 fileSize,
-                fileType: blob.type,
-                url
+                fileType: mimeType,
+                url: blobUrl
             }
-
+            console.log('fileMessage', fileMessage)
             chatStore.receiveMessage(socketId, fileMessage)
 
             // 清理
@@ -491,37 +468,7 @@ export class WebRTCServices {
         }
     }
 
-    // 根据文件名猜测MIME类型
-    private guessFileType(fileName: string): string {
-        const extension = fileName.split('.').pop()?.toLowerCase()
 
-        const mimeTypes: Record<string, string> = {
-            'jpg': 'image/jpeg',
-            'jpeg': 'image/jpeg',
-            'png': 'image/png',
-            'gif': 'image/gif',
-            'webp': 'image/webp',
-            'pdf': 'application/pdf',
-            'doc': 'application/msword',
-            'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'xls': 'application/vnd.ms-excel',
-            'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'ppt': 'application/vnd.ms-powerpoint',
-            'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-            'txt': 'text/plain',
-            'zip': 'application/zip',
-            'rar': 'application/x-rar-compressed',
-            'mp3': 'audio/mpeg',
-            'mp4': 'video/mp4',
-            'avi': 'video/x-msvideo',
-            'mov': 'video/quicktime',
-            'webm': 'video/webm'
-        }
-
-        return extension && extension in mimeTypes
-            ? mimeTypes[extension]
-            : 'application/octet-stream'
-    }
 
     // 获取文件传输进度
     getFileTransferProgress(fileId: string): FileTransferProgress | undefined {

@@ -15,12 +15,13 @@ export const setupSocketIO = (io: Server, services: Services) => {
 
         // 客户端立即发送用户加入连接
         socket.on(SocketEvents.UserJoin, (user: User) => {
-            userService.addUser(socket.id, { ...user, isOnline: true });
+            const userData = { ...user, isOnline: true };
+            userService.addUser(socket.id, userData);
             // 通知全部客户端更新在线列表
             io.emit(SocketEvents.UsersUpdate, {
                 type: "add",
                 onlineUsers: userService.getOnlineUsers(),
-                user: user
+                user: userData
             });
             logger.info(`User joined: ${user.name} (${socket.id})`);
         });

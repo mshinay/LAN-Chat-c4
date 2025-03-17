@@ -20,7 +20,7 @@
             <a
               :href="(props.data as any).url"
               target="_blank"
-              download
+              :download="(props.data as any).fileName"
               class="font-medium hover:underline"
             >
               {{ (props.data as any).fileName }}
@@ -50,23 +50,14 @@
 import { FileIcon } from 'lucide-vue-next'
 import { computed } from 'vue'
 import type { Message } from '@/types/message'
-
-const props = defineProps<{
-  data: Message & { isSelf: boolean }
-}>()
-
+import { formatFileSize } from '@/lib/utils/file'
 // 判断是否为图片文件
 const isImage = computed(() => {
   if (props.data.type !== 'file') return false
   const fileType = (props.data as any).fileType || ''
   return fileType.startsWith('image/')
 })
-
-// 格式化文件大小
-const formatFileSize = (bytes: number): string => {
-  if (bytes < 1024) return bytes + ' B'
-  else if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB'
-  else if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB'
-  else return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB'
-}
+const props = defineProps<{
+  data: Message & { isSelf: boolean }
+}>()
 </script>

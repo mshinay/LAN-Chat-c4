@@ -8,7 +8,7 @@
     <div class="w-full flex flex-col gap-2">
       <h2 class="ml-1 text-sm font-medium w-fit">{{ userData.name }}</h2>
       <p class="w-[75%] text-xs text-muted-foreground whitespace-nowrap truncate">
-        {{ chatStore.getOrCreateSession(userData.socketId).lastMessage?.content }}
+        {{ lastMessage }}
       </p>
     </div>
     <div
@@ -33,8 +33,6 @@
 </template>
 
 <script setup lang="ts">
-import Avatar from '@/components/ui/avatar/Avatar.vue'
-import AvatarImage from '@/components/ui/avatar/AvatarImage.vue'
 import { computed } from 'vue'
 import type { User } from '@/types/user'
 import { useChatStore } from '@/stores/chat'
@@ -55,5 +53,12 @@ const selectedClass = computed(() => {
   return props.selected
     ? 'bg-accent shadow-sm border-l-2 border-primary rounded-md'
     : 'border-l-2 border-transparent'
+})
+
+const lastMessage = computed(() => {
+  const session = chatStore.getOrCreateSession(props.userData.socketId)
+  return session.lastMessage?.type === 'text'
+    ? session.lastMessage?.content
+    : session.lastMessage?.fileName && `[${session.lastMessage?.fileName}]`
 })
 </script>

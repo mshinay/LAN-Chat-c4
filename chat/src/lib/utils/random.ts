@@ -12,11 +12,13 @@ export function getRandomName() {
 }
 
 export function getRandomId(): string {
-    if (typeof crypto !== "undefined") {
+    try {
         return crypto.randomUUID();
+    } catch (error) {
+        const timestamp = Date.now().toString(36); // 转换为 36 进制
+        const randomPart = Math.random().toString(36).substring(2, 10); // 随机数去掉 "0."
+        return `${timestamp}-${randomPart}`;
     }
-    const timestamp = Date.now().toString(36); // 转换为 36 进制
-    const randomPart = Math.random().toString(36).substring(2, 10); // 随机数去掉 "0."
-    return `${timestamp}-${randomPart}`;
 }
+
 

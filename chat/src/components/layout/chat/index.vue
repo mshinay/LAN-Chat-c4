@@ -1,5 +1,5 @@
 <template>
-  <div class="md:flex flex-col h-full">
+  <div class="flex flex-col h-full">
     <Header class="h-16" />
     <ChatContainer class="flex-1 overflow-hidden" />
   </div>
