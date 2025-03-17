@@ -2,14 +2,6 @@
 
 LAN-Chat 是一个基于 WebRTC 和 WebSocket 的局域网聊天应用，支持文本消息、点对点通信和多用户聊天室。
 
-![image-20250317145756326](/Users/hanlinfei/Library/Application Support/typora-user-images/image-20250317145756326.png)
-
-![image-20250317145835957](/Users/hanlinfei/Library/Application Support/typora-user-images/image-20250317145835957.png)
-
-![image-20250317150303280](/Users/hanlinfei/Library/Application Support/typora-user-images/image-20250317150303280.png)
-
-
-
 ## 功能特点
 
 - **局域网通信**：无需互联网连接，在局域网内即可使用
