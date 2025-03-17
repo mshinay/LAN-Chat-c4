@@ -8,10 +8,9 @@ LAN-Chat 是一个基于 WebRTC 和 WebSocket 的局域网聊天应用，支持�
 - **实时消息**：基于 WebSocket 的实时消息传递
 - **点对点通信**：使用 WebRTC 进行直接的点对点通信
 - **多用户聊天**：支持多人同时在线聊天
+- **文件传输**：支持点对点文件在线传输
 - **响应式设计**：适配桌面和移动设备
 - **深色/浅色主题**：支持主题切换
-- **离线支持**：本地存储聊天历史
-- **自动重连**：网络中断时自动尝试重新连接
 
 ## 技术栈
 
@@ -24,7 +23,6 @@ LAN-Chat 是一个基于 WebRTC 和 WebSocket 的局域网聊天应用，支持�
 - Socket.io-client (WebSocket 客户端)
 - WebRTC (点对点通信)
 - TailwindCSS (样式)
-- Vitest (测试框架)
 
 ### 后端
 
@@ -46,7 +44,7 @@ LAN-Chat 是一个基于 WebRTC 和 WebSocket 的局域网聊天应用，支持�
 1. 克隆仓库
 
 ```bash
-git clone https://github.com/yourusername/LAN-Chat.git
+git clone https://github.com/HanLinfei/LAN-Chat.git
 cd LAN-Chat
 ```
 
@@ -72,27 +70,14 @@ npm run dev
 http://localhost:5173
 ```
 
-## 开发
-
-### 构建前端
+### 项目部署
 
 ```bash
-cd chat
-npm run build
-```
-
-### 运行测试
-
-```bash
-cd chat
-npm run test
-```
-
-### 分析构建
-
-```bash
-cd chat
-npm run analyze
+cd LAN-Chat/chat
+npm install
+cd ../server
+npm install
+npm run start
 ```
 
 ## 许可证
