@@ -1,6 +1,8 @@
 <template>
   <div class="flex flex-row items-center">
     <h2 class="mr-3 text-sm sm:text-base">{{ name }}</h2>
+     <!--meatamask登录-->
+     <MetaMaskButton />
   </div>
 </template>
 
@@ -23,4 +25,5 @@ const props = withDefaults(
 const avatarSizeToClass = computed(() => {
   return props.avatarSize === 'sm' ? 'size-7' : props.avatarSize === 'md' ? 'size-8' : 'size-9'
 })
+import MetaMaskButton from "@/components/ui/metamask/MetaMaskButton.vue"
 </script>

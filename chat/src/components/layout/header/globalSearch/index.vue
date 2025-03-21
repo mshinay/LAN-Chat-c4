@@ -6,6 +6,7 @@
           <ComboboxInput class="pl-9 w-full" placeholder="搜索用户或消息" />
           <span class="absolute start-0 inset-y-0 flex items-center justify-center px-3">
             <SearchIcon class="size-4 text-muted-foreground" />
+          
           </span>
         </div>
       </ComboboxAnchor>
@@ -30,4 +31,5 @@ import {
 } from '@/components/ui/combobox'
 
 import SearchIcon from '@/assets/icon/search.vue'
+
 </script>
