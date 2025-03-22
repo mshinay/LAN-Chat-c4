@@ -15,6 +15,17 @@ export const useUserStore = defineStore('user', () => {
     const connectionError = ref<string | null>(null)
     const allUsers = ref<User[]>([])
     const chatStore = useChatStore()
+    const walletAddress = ref<string | null>(null);
+
+   
+
+    const setWalletAddress = async (walletAddressPass?: string) => {
+        if (!walletAddressPass) {
+            walletAddress.value = null; // 设置响应式变量为 null
+        } else {
+            walletAddress.value = walletAddressPass; // 更新响应式变量的值
+        }
+    };
     // 初始化当前用户
     const initCurrentUser = async (name?: string) => {
         if (!name) {

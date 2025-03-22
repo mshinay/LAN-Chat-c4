@@ -16,6 +16,9 @@ export class SocketIOService {
     private reconnectDelay = 3000 // 3秒
     private reconnectTimer: number | null = null
     private userStore: ReturnType<typeof useUserStore> | null = null
+    
+
+
 
     private constructor() { }
 
@@ -60,11 +63,12 @@ export class SocketIOService {
             logger.info('Connecting to socket server...')
 
             this.socket = io(`http://${window.location.hostname}:3000`, {
+                query: { token: localStorage.getItem('jwt') },
                 transports: ['websocket'],
                 autoConnect: true,
-                reconnection: false, // 我们自己处理重连
-                timeout: 10000 // 10秒超时
-            })
+                reconnection: false,
+                timeout: 10000,
+            });
 
             this.setupListeners(resolve, reject)
         })

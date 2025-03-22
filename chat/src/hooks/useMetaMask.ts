@@ -1,5 +1,6 @@
 import { ref } from "vue";
 import Web3 from "web3";
+import { useUserStore } from "@/stores/user";
 
 // 用于扩展 `window` 对象的类型声明
 declare global {
@@ -8,35 +9,40 @@ declare global {
   }
 }
 
-const walletAddress = ref<string | null>(null);
-
 export function useMetaMask() {
-  async function connectWallet() {
-    if (window.ethereum) {
-      const web3 = new Web3(window.ethereum);
-      await window.ethereum.request({ method: "eth_requestAccounts" });
-      const accounts = await web3.eth.getAccounts();
-      walletAddress.value = accounts[0];
+  const walletAddress = ref<string | null>(null);
+  const userStore = useUserStore();
 
-      // 生成签名
-      const message = "Login to LAN-Chat";
-      const signature = await web3.eth.personal.sign(message, accounts[0], "");
-
-      // 发送到后端
-      const res = await fetch("http://localhost:3000/auth/wallet-login", {
-        method: "POST",
-        body: JSON.stringify({ address: accounts[0], signature }),
-        headers: { "Content-Type": "application/json" },
-      });
-      const data = await res.json();
-      console.log("Login Success:", data);
-
-      // 存储钱包地址
-      localStorage.setItem("walletAddress", accounts[0]);
-    } else {
+  const connectWallet = async () => {
+    if (!window.ethereum) {
       alert("请安装 MetaMask 扩展");
+      return;
     }
-  }
+
+    const web3 = new Web3(window.ethereum);
+    const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+    walletAddress.value = accounts[0];
+
+    // 使用钱包地址生成签名
+    const message = "Login to LAN-Chat";
+    const signature = await web3.eth.personal.sign(message, walletAddress.value!, "");
+
+    // 发送到后端验证
+    const res = await fetch("http://localhost:3000/auth/wallet-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address: walletAddress.value, signature }),
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      console.log("登录成功:", data.token);
+      userStore.setWalletAddress(walletAddress.value); // 更新用户状态
+      localStorage.setItem("jwt", data.token); // 存储 JWT
+    } else {
+      console.error("登录失败:", data.error);
+    }
+  };
 
   return { walletAddress, connectWallet };
 }

@@ -3,16 +3,34 @@ import { User } from '../types/user';
 import { SocketEvents } from '../types/socket';
 import { Services } from '../services';
 import { logger } from '../utils/logger';
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = "your_jwt_secret";
+
 
 export const setupSocketIO = (io: Server, services: Services) => {
     const { userService } = services;
+   
 
     logger.info('Setting up Socket.IO server');
+
 
     // 用户加入连接
     io.on(SocketEvents.Connection, (socket: Socket) => {
         logger.debug(`New connection: ${socket.id}`);
 
+        const token = socket.handshake.query.token as string;
+          // 验证 JWT
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET) as { address: string };
+        console.log(`User connected: ${decoded.address}`);
+        socket.data.address = decoded.address; // 将钱包地址绑定到连接
+      } catch (err) {
+        console.error("Invalid JWT");
+        socket.disconnect(); // 如果验证失败，断开连接
+        return;
+      }
+      
         // 客户端立即发送用户加入连接
         socket.on(SocketEvents.UserJoin, (user: User) => {
             const userData = { ...user, isOnline: true };
