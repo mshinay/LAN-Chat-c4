@@ -20,6 +20,11 @@ export const setupSocketIO = (io: Server, services: Services) => {
         logger.debug(`New connection: ${socket.id}`);
 
         const token = socket.handshake.query.token as string;
+        if (!token) {
+            console.error("WebSocket 连接失败：未传递 JWT");
+            socket.disconnect();
+            return;
+        }
           // 验证 JWT
     try {
         const decoded = jwt.verify(token, JWT_SECRET) as { address: string };
@@ -30,7 +35,7 @@ export const setupSocketIO = (io: Server, services: Services) => {
         socket.disconnect(); // 如果验证失败，断开连接
         return;
       }
-      
+
         // 客户端立即发送用户加入连接
         socket.on(SocketEvents.UserJoin, (user: User) => {
             const userData = { ...user, isOnline: true };

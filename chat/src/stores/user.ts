@@ -118,6 +118,8 @@ export const useUserStore = defineStore('user', () => {
         isConnected,
         connectionError,
         allUsers,
+        walletAddress,
+        setWalletAddress,
         initCurrentUser,
         updateOnlineUsers,
         cleanupUserListeners,

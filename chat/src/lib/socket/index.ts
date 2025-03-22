@@ -57,17 +57,23 @@ export class SocketIOService {
 
         this.isConnecting.value = true
         this.userStore = useUserStore()
+        const token = localStorage.getItem("jwt"); // 从 localStorage 获取 JWT
+        if (!token) {
+            console.error("WebSocket 连接失败：未找到 JWT");
+            return Promise.reject(new Error("Missing JWT token"));
+        }
+    
 
         // 返回promise
         return new Promise<string>((resolve, reject) => {
             logger.info('Connecting to socket server...')
 
             this.socket = io(`http://${window.location.hostname}:3000`, {
-                query: { token: localStorage.getItem('jwt') },
-                transports: ['websocket'],
+                query: { token }, // 将 token 添加到 WebSocket 查询参数中
+                transports: ["websocket"],
                 autoConnect: true,
                 reconnection: false,
-                timeout: 10000,
+                timeout: 10000, // 10 秒超时
             });
 
             this.setupListeners(resolve, reject)

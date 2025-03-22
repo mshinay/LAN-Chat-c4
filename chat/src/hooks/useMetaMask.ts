@@ -28,7 +28,7 @@ export function useMetaMask() {
     const signature = await web3.eth.personal.sign(message, walletAddress.value!, "");
 
     // 发送到后端验证
-    const res = await fetch("http://localhost:3000/auth/wallet-login", {
+    const res = await fetch("http://localhost:3000/api/auth/wallet-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ address: walletAddress.value, signature }),
@@ -36,8 +36,9 @@ export function useMetaMask() {
 
     const data = await res.json();
     if (data.success) {
+      localStorage.setItem('jwt',data.token);
       console.log("登录成功:", data.token);
-      userStore.setWalletAddress(walletAddress.value); // 更新用户状态
+      userStore.setWalletAddress(walletAddress.value!); // 更新用户状态
       localStorage.setItem("jwt", data.token); // 存储 JWT
     } else {
       console.error("登录失败:", data.error);

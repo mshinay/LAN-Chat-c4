@@ -3,6 +3,7 @@ import { Services } from '../services';
 import userRoutes from './user.routes';
 import chatRoutes from './chat.routes';
 import healthRoutes from './health.routes';
+import authRoutes from './auth.routes';
 
 export default function (services: Services) {
     const router = Router();
@@ -15,6 +16,8 @@ export default function (services: Services) {
 
     // 聊天相关路由
     router.use('/chat', chatRoutes(services));
+
+    router.use('/auth',authRoutes);
 
     return router;
 } 
