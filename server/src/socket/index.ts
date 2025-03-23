@@ -36,6 +36,30 @@ export const setupSocketIO = (io: Server, services: Services) => {
         return;
       }
 
+      let address = "Guest";
+      if (token) {
+          try {
+              const decoded = jwt.verify(token, JWT_SECRET) as { address: string };
+              address = decoded.address;
+              console.log(`MetaMask 用户连接成功：${address}`);
+          } catch (err) {
+              console.error("JWT 验证失败：", err);
+              socket.disconnect();
+              return;
+          }
+      }
+  
+      // 保存用户信息
+      userService.addUser(socket.id, { socketId: socket.id, name: address,joinedAt: new Date().toISOString() , isOnline: true });
+  
+      // 广播在线用户
+      io.emit(SocketEvents.UsersUpdate, {
+          type: "add",
+          onlineUsers: userService.getOnlineUsers(),
+          user: { socketId: socket.id, name: address, isOnline: true },
+      });
+  
+
         // 客户端立即发送用户加入连接
         socket.on(SocketEvents.UserJoin, (user: User) => {
             const userData = { ...user, isOnline: true };

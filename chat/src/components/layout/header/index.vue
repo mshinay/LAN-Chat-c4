@@ -29,4 +29,6 @@ import { useUserStore } from '@/stores/user'
 
 const isMobile = useMobile()
 const userStore = useUserStore()
+
+
 </script>

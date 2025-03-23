@@ -6,6 +6,8 @@ import { SocketEvents } from '@/types/socket'
 import { logger } from '@/lib/utils/logger'
 import { getRandomName } from '@/lib/utils/random'
 import { useChatStore } from './chat'
+import { computed } from "vue";
+
 
 export const useUserStore = defineStore('user', () => {
     const currentUser = ref<User | null>(null)
@@ -16,21 +18,20 @@ export const useUserStore = defineStore('user', () => {
     const allUsers = ref<User[]>([])
     const chatStore = useChatStore()
     const walletAddress = ref<string | null>(null);
-
+    const isAuthenticated = computed(() => !!walletAddress.value);
    
 
-    const setWalletAddress = async (walletAddressPass?: string) => {
-        if (!walletAddressPass) {
-            walletAddress.value = null; // 设置响应式变量为 null
-        } else {
-            walletAddress.value = walletAddressPass; // 更新响应式变量的值
-        }
+    const setWalletAddress = async (address?: string) => {
+        walletAddress.value = address!;
+        localStorage.setItem("walletAddress", address!);
+        initCurrentUser(address); // 使用钱包地址初始化用户
+
     };
     // 初始化当前用户
     const initCurrentUser = async (name?: string) => {
-        if (!name) {
-            name = getRandomName()
-        }
+        
+            
+      
 
         isConnecting.value = true
         connectionError.value = null
@@ -41,12 +42,16 @@ export const useUserStore = defineStore('user', () => {
 
             currentUser.value = {
                 socketId,
-                name,
+                name: name || walletAddress.value || "unkownUser", // 使用 MetaMask 钱包地址作为用户名
                 joinedAt: new Date().toISOString()
             }
             console.log('currentUser', currentUser.value)
             // 发送用户加入连接
             socketService.emit(SocketEvents.UserJoin, currentUser.value)
+
+             // 持久化到 localStorage
+        localStorage.setItem("currentUser", JSON.stringify(currentUser.value));
+
             logger.info(`User initialized: ${name} (${socketId})`)
         } catch (error) {
             logger.error('Failed to initialize user:', error)
@@ -55,6 +60,15 @@ export const useUserStore = defineStore('user', () => {
             isConnecting.value = false
         }
     }
+
+   
+// 恢复当前用户
+    const restoreCurrentUser = () => {
+        const savedUser = localStorage.getItem("currentUser");
+        if (savedUser) {
+            currentUser.value = JSON.parse(savedUser);
+        }
+    };
 
     // 更新在线用户列表
     const updateOnlineUsers = (data: { type: string, onlineUsers: User[], user: User }) => {
@@ -84,6 +98,19 @@ export const useUserStore = defineStore('user', () => {
         }
         logger.debug(`Online users updated: ${onlineUsers.value.length} users`)
     }
+
+
+// 获取在线用户列表（从后端拉取）
+const fetchOnlineUsers = async () => {
+    try {
+        const response = await fetch("http://localhost:3000/api/users/online");
+        const data = await response.json();
+        updateOnlineUsers(data.onlineUsers);
+    } catch (error) {
+        console.error("获取在线用户列表失败:", error);
+    }
+};
+
 
     const initUsers = (users: User[]) => {
         // 确保users是数组
@@ -119,6 +146,10 @@ export const useUserStore = defineStore('user', () => {
         connectionError,
         allUsers,
         walletAddress,
+        isAuthenticated,
+        fetchOnlineUsers,
+        
+        restoreCurrentUser,
         setWalletAddress,
         initCurrentUser,
         updateOnlineUsers,

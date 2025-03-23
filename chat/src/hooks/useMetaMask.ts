@@ -20,13 +20,14 @@ export function useMetaMask() {
     }
 
     const web3 = new Web3(window.ethereum);
-    const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+    const accounts = await web3.eth.requestAccounts();
     walletAddress.value = accounts[0];
-
+     // 存储钱包地址到 localStorage
+     localStorage.setItem("walletAddress", accounts[0]);
     // 使用钱包地址生成签名
     const message = "Login to LAN-Chat";
     const signature = await web3.eth.personal.sign(message, walletAddress.value!, "");
-
+    
     // 发送到后端验证
     const res = await fetch("http://localhost:3000/api/auth/wallet-login", {
       method: "POST",
@@ -36,10 +37,10 @@ export function useMetaMask() {
 
     const data = await res.json();
     if (data.success) {
-      localStorage.setItem('jwt',data.token);
+      localStorage.setItem('jwt',data.token);// 存储 JWT
       console.log("登录成功:", data.token);
       userStore.setWalletAddress(walletAddress.value!); // 更新用户状态
-      localStorage.setItem("jwt", data.token); // 存储 JWT
+
     } else {
       console.error("登录失败:", data.error);
     }
