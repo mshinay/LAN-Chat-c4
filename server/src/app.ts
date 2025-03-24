@@ -81,6 +81,11 @@ setupRoutes(app, services);
 
 // 所有其他路由返回 index.html（放在API路由之后）
 app.get('*', (req: express.Request, res: express.Response) => {
+       // 排除以 /api 开头的路径
+       if (req.path.startsWith('/api') || req.path.startsWith('/ipfs')) {
+        res.status(404).send('API route not found');
+        return;
+    }
     res.sendFile(path.join(publicPath, 'index.html'));
 });
 

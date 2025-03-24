@@ -4,6 +4,7 @@ import userRoutes from './user.routes';
 import chatRoutes from './chat.routes';
 import healthRoutes from './health.routes';
 import authRoutes from './auth.routes';
+import ipfsRoutes from './ipfs.routes';
 
 export default function (services: Services) {
     const router = Router();
@@ -17,7 +18,11 @@ export default function (services: Services) {
     // 聊天相关路由
     router.use('/chat', chatRoutes(services));
 
+    //metamask登录相关路由
     router.use('/auth',authRoutes);
+
+    //pinata代理相关路由
+    router.use('/ipfs', ipfsRoutes);
 
     return router;
 } 

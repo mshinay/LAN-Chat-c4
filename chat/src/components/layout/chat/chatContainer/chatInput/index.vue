@@ -1,15 +1,16 @@
 <template>
-  <div class="flex w-full items-center gap-1.5 px-6">
-     <!-- 消息输入框 -->
+ <div class="flex w-full items-center gap-1.5 px-6">
+    <!-- 消息输入框 -->
     <Input
       @keydown.enter="handleSendMessage"
       type="text"
-      :placeholder="chatStore.currentSessionId ? '消666息' : '选择一个用户以开始聊天'"
+      :placeholder="chatStore.currentSessionId ? '消息' : '选择一个用户以开始聊天'"
       v-model="message"
       :disabled="!chatStore.currentSessionId"
       autocomplete="off"
     />
-     <!-- 文件上传按钮 -->
+
+    <!-- 文件上传按钮 -->
     <Button
       variant="secondary"
       @click="handleUploadFile"
@@ -19,9 +20,11 @@
       <span class="hidden md:block">{{ isUploading ? '上传中...' : '发送文件' }}</span>
       <Paperclip :class="['block md:hidden', isUploading ? 'animate-spin' : '']" />
     </Button>
-     <!-- 消息发送按钮 -->
-    <Button @click="handleSendMessage" :disabled="!chatStore.currentSessionId"> 发送 </Button>
-     <!-- 文件输入 -->
+
+    <!-- 消息发送按钮 -->
+    <Button @click="handleSendMessage" :disabled="!chatStore.currentSessionId">发送</Button>
+
+    <!-- 文件输入框（隐藏） -->
     <input type="file" ref="fileInput" class="hidden" @change="handleFileChange" />
   </div>
 </template>
@@ -34,32 +37,61 @@ import { useToast } from '@/components/ui/toast/use-toast'
 import { computed, ref } from 'vue'
 import { Paperclip } from 'lucide-vue-next'
 import { sendMessageToIPFS, uploadFileToIPFSService } from '@/services/ipfsService'
-
+import { uploadToPinata } from '@/lib/ipfs'; // 自动适配环境
 const chatStore = useChatStore()
 const { toast } = useToast()
 const message = ref('')
 const isUploading = ref(false)
 
-const handleSendMessage = async() => {
+
+// 发送消息到后端的 IPFS 接口
+async function uploadMessageToIPFS(content: string): Promise<string> {
+  const blob = new Blob([content], { type: 'text/plain' });
+  const file = new File([blob], 'message.txt', { type: 'text/plain' });
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await fetch('http://localhost:3000/api/ipfs/upload', {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`文件上传失败: ${errorText}`);
+  }
+
+  const result = await response.json();
+  return result.IpfsHash; // 返回 CID
+}
+
+
+// 发送消息
+const handleSendMessage = async () => {
   if (chatStore.currentSessionId && message.value.trim() !== '') {
     try {
-      // 上传消息到 IPFS
-      const ipfsMessage = await sendMessageToIPFS(message.value.trim())
-      console.log('消息已存储到 IPFS：', ipfsMessage)
+      isUploading.value = true;
 
-      // 更新聊天记录
-      chatStore.sendTextMessage(`[IPFS] ${ipfsMessage.content} (${ipfsMessage.url})`)
-      message.value = ''
+      const cid = await uploadMessageToIPFS(message.value.trim());
+      const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${cid}`;
+
+      chatStore.sendTextMessage(`[IPFS] ${message.value.trim()} (${ipfsUrl})`);
+      message.value = '';
     } catch (error) {
-      console.error('消息发送失败：', error)
+      console.error('消息发送失败:', error);
       toast({
         title: '消息发送失败',
-        description: '请检查连接或稍后重试',
+        description: error instanceof Error ? error.message : '未知错误',
         variant: 'destructive',
-      })
+      });
+    } finally {
+      isUploading.value = false;
     }
   }
 }
+
+
 
 // 文件输入引用
 const fileInput = ref<HTMLInputElement>()
@@ -70,53 +102,57 @@ const handleUploadFile = () => {
   fileInput.value?.click()
 }
 
-// 上传文件到 IPFS
+// 上传文件到后端的 IPFS 接口
 const handleFileChange = async (e: Event) => {
-  const files = (e.target as HTMLInputElement).files
-  if (!files?.length || !chatStore.currentSessionId) return
+  const files = (e.target as HTMLInputElement).files;
+  if (!files?.length || !chatStore.currentSessionId) return;
 
-  const file = files[0]
+  const file = files[0];
 
-  // 检查文件大小 (限制为1000MB)
-  const MAX_FILE_SIZE = 1000 * 1024 * 1024 // 100MB
+  // 检查文件大小 (限制为 100MB)
+  const MAX_FILE_SIZE = 100 * 1024 * 1024;
   if (file.size > MAX_FILE_SIZE) {
     toast({
       title: '文件过大',
-      description: '文件大小不能超过100MB',
+      description: '文件大小不能超过 100MB',
       variant: 'destructive',
-    })
-    return
+    });
+    return;
   }
 
   try {
-    isUploading.value = true
+    isUploading.value = true;
 
-     // 上传文件到 IPFS
-     const { cid, url } = await uploadFileToIPFSService(file)
-    console.log('文件已上传到 IPFS：', { cid, url })
+    const formData = new FormData();
+    formData.append('file', file);
 
-    // 更新聊天记录
-    chatStore.sendTextMessage(`[文件已上传至 IPFS] ${file.name} (${url})`)
+    const response = await fetch('http://localhost:3000/api/ipfs/upload', {
+      method: 'POST',
+      body: formData,
+    });
 
-   
-      
-      toast({
-        title: '文件上传成功',
-      description: `文件链接：${url}`,
-      })
-    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`文件上传失败: ${errorText}`);
+    }
+
+    const result = await response.json();
+    const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`;
+
+    chatStore.sendTextMessage(`[文件已上传至 IPFS] ${file.name} (${ipfsUrl})`);
   } catch (error) {
-    console.error('File upload error:', error)
+    console.error('文件上传失败:', error);
     toast({
-      title: '文件上传错误',
+      title: '文件上传失败',
       description: error instanceof Error ? error.message : '未知错误',
       variant: 'destructive',
-    })
+    });
   } finally {
-    isUploading.value = false
+    isUploading.value = false;
+
     // 重置文件输入
     if (fileInput.value) {
-      fileInput.value.value = ''
+      fileInput.value.value = '';
     }
   }
 }
