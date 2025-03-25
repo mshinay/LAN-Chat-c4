@@ -1,6 +1,6 @@
 # LAN-Chat
 
-LAN-Chat 是一个基于 WebRTC 和 WebSocket 的局域网聊天应用，支持文本消息、点对点通信和多用户聊天室。
+LAN-Chat 是一个基于 WebRTC 和 WebSocket 的局域网聊天应用，支持文本消息、点对点通信和多用户聊天室，通过metamask完成了(DID去中心化标识符)功能，通过pinata完成了IPFS(分布式存储的功能)，用Hardhat完成了消息上链的功能。
 
 ## 功能特点
 
@@ -13,6 +13,7 @@ LAN-Chat 是一个基于 WebRTC 和 WebSocket 的局域网聊天应用，支持�
 - **文件传输**：支持点对点文件在线传输
 - **响应式设计**：适配桌面和移动设备
 - **深色/浅色主题**：支持主题切换
+- **（待续）**
 
 ## 技术栈
 
@@ -25,6 +26,7 @@ LAN-Chat 是一个基于 WebRTC 和 WebSocket 的局域网聊天应用，支持�
 - Socket.io-client (WebSocket 客户端)
 - WebRTC (点对点通信)
 - TailwindCSS (样式)
+- **（待续）**
 
 ### 后端
 
@@ -33,6 +35,7 @@ LAN-Chat 是一个基于 WebRTC 和 WebSocket 的局域网聊天应用，支持�
 - TypeScript
 - Socket.io (WebSocket 服务器)
 - Winston (日志)
+- **（待续）**
 
 ## 快速开始
 
@@ -40,14 +43,19 @@ LAN-Chat 是一个基于 WebRTC 和 WebSocket 的局域网聊天应用，支持�
 
 - Node.js 18+
 - npm 或 yarn
+- metamask账户
+- pinata账号
+- **（待续）**
 
 ### 安装和运行
+
+#### 待添加合约的配置
 
 1. 克隆仓库
 
 ```bash
-git clone https://github.com/HanLinfei/LAN-Chat.git
-cd LAN-Chat
+git clone https://github.com/mshinay/LAN-Chat-c4
+cd LAN-Chat-c4
 ```
 
 2. 安装依赖并启动后端

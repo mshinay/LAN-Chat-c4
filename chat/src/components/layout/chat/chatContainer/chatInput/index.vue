@@ -38,19 +38,25 @@ import { computed, ref } from 'vue'
 import { Paperclip } from 'lucide-vue-next'
 import { sendMessageToIPFS, uploadFileToIPFSService } from '@/services/ipfsService'
 import { uploadToPinata } from '@/lib/ipfs'; // 自动适配环境
+import { storeCID } from "@/lib/contract"; // 用于与区块链交互
 const chatStore = useChatStore()
 const { toast } = useToast()
 const message = ref('')
 const isUploading = ref(false)
+const currentUser = ref(JSON.parse(localStorage.getItem("currentUser") || "{}"));
+
 
 
 // 发送消息到后端的 IPFS 接口
-async function uploadMessageToIPFS(content: string): Promise<string> {
+async function uploadMessageToIPFS(content: string,uploader: string): Promise<string> {
   const blob = new Blob([content], { type: 'text/plain' });
   const file = new File([blob], 'message.txt', { type: 'text/plain' });
+  const receiverId = chatStore.currentSessionId; // 当前会话的接收者 ID
 
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('uploader', uploader);
+  formData.append('receiverId',receiverId || "anonymous")
 
   const response = await fetch('http://localhost:3000/api/ipfs/upload', {
     method: 'POST',
@@ -73,8 +79,11 @@ const handleSendMessage = async () => {
     try {
       isUploading.value = true;
 
-      const cid = await uploadMessageToIPFS(message.value.trim());
+      const cid = await uploadMessageToIPFS(message.value.trim(),currentUser.value.name);
       const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${cid}`;
+      const metadata = 'Message|${new Date().toISOString()}'
+      // 2. 将 CID 存储到区块链
+    await storeCID(cid,metadata); // 调用区块链交互逻辑，存储 CID 和类型
 
       chatStore.sendTextMessage(`[IPFS] ${message.value.trim()} (${ipfsUrl})`);
       message.value = '';
@@ -122,9 +131,11 @@ const handleFileChange = async (e: Event) => {
 
   try {
     isUploading.value = true;
-
+    const receiverId = chatStore.currentSessionId; // 当前会话的接收者 ID
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('uploader', currentUser.value.name)
+    formData.append('receiverId',receiverId || "anonymous")
 
     const response = await fetch('http://localhost:3000/api/ipfs/upload', {
       method: 'POST',
@@ -138,6 +149,9 @@ const handleFileChange = async (e: Event) => {
 
     const result = await response.json();
     const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`;
+    const metadata = `File|${new Date().toISOString()}`;
+     // 2. 将 CID 存储到区块链
+     await storeCID(result.IpfsHash,metadata); // 调用区块链交互逻辑，存储 CID 和类型
 
     chatStore.sendTextMessage(`[文件已上传至 IPFS] ${file.name} (${ipfsUrl})`);
   } catch (error) {

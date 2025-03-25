@@ -3,6 +3,9 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
 import FormData from 'form-data';
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.pinataconfig' }); // 明确指定文件路径
+
 
 // Pinata API 密钥
 const PINATA_JWT = process.env.PINATA_JWT;
@@ -23,7 +26,8 @@ export const uploadToPinata = async (req: Request, res: Response) => {
       'pinataMetadata',
       JSON.stringify({
         name: req.file.originalname,
-        uploadedBy: 'LAN-Chat',
+        uploadedBy: req.body.uploader,
+        receiverId: req.body.receiverId,
         timestamp: new Date().toISOString(),
       })
     );
@@ -57,6 +61,6 @@ console.log('Form Data Metadata:', JSON.stringify({
 })); */
 console.log('Form Data Options:', JSON.stringify({ cidVersion: 1 }));
 
-    res.status(500).json({ error: '文件上传失败', details: (error as Error).message  });
+    res.status(500).json({ error: '文件上传失败'+PINATA_JWT, details: (error as Error).message  });
   }
 };
