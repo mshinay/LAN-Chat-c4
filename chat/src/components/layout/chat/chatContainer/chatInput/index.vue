@@ -39,19 +39,21 @@ import { Paperclip } from 'lucide-vue-next'
 import { sendMessageToIPFS, uploadFileToIPFSService } from '@/services/ipfsService'
 import { uploadToPinata } from '@/lib/ipfs'; // 自动适配环境
 import { storeCID } from "@/lib/contract"; // 用于与区块链交互
+import { useUserStore } from '@/stores/user'
 const chatStore = useChatStore()
 const { toast } = useToast()
 const message = ref('')
 const isUploading = ref(false)
 const currentUser = ref(JSON.parse(localStorage.getItem("currentUser") || "{}"));
-
+const userStore =useUserStore()
 
 
 // 发送消息到后端的 IPFS 接口
 async function uploadMessageToIPFS(content: string,uploader: string): Promise<string> {
   const blob = new Blob([content], { type: 'text/plain' });
   const file = new File([blob], 'message.txt', { type: 'text/plain' });
-  const receiverId = chatStore.currentSessionId; // 当前会话的接收者 ID
+  const receiverId = userStore.getUserBySocketId(chatStore.currentSessionId!)?.name; // 当前会话的接收者 ID
+  
 
   const formData = new FormData();
   formData.append('file', file);
@@ -131,7 +133,8 @@ const handleFileChange = async (e: Event) => {
 
   try {
     isUploading.value = true;
-    const receiverId = chatStore.currentSessionId; // 当前会话的接收者 ID
+    const receiverId = userStore.getUserBySocketId(chatStore.currentSessionId!)?.name; // 当前会话的接收者 ID
+  
     const formData = new FormData();
     formData.append('file', file);
     formData.append('uploader', currentUser.value.name)

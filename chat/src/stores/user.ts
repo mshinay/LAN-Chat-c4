@@ -148,7 +148,6 @@ const fetchOnlineUsers = async () => {
         walletAddress,
         isAuthenticated,
         fetchOnlineUsers,
-        
         restoreCurrentUser,
         setWalletAddress,
         initCurrentUser,
