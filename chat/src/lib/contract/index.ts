@@ -33,9 +33,7 @@ export async function storeCID(
 ) {
   const contract = await getContractInstance();
   
-  if (!ethers.isAddress(receiver)) {
-    throw new Error(`receiver 不是合法的以太坊地址: ${receiver}`);
-  }
+ 
   //const receiverAddress = ethers.getAddress(receiver);
   try {
     // 传递 `cid`, `metadata`, `receiver`, 和 `requiredRole`

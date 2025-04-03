@@ -27,16 +27,17 @@ contract StorageContract {
     constructor() {
         roles[msg.sender] = Role.Admin;
     }
+
     // 自定义错误（更高效）
     error InsufficientRole(uint256 have, uint256 required);
 
     // 修饰符：检查角色
     modifier onlyRole(Role requiredRole) {
-    if (uint(roles[msg.sender]) <= uint(requiredRole)) {
-        revert InsufficientRole(uint(roles[msg.sender]), uint(requiredRole));
+        if (uint(roles[msg.sender]) > uint(requiredRole)) {
+            revert InsufficientRole(uint(roles[msg.sender]), uint(requiredRole));
+        }
+        _;
     }
-    _;
-}
 
     // 数据存储（Uploader 及以上权限可调用）
     function storeData(
@@ -45,11 +46,6 @@ contract StorageContract {
         address receiver,
         Role requiredRole
     ) public onlyRole(Role.Uploader) {
-        require(
-            uint(requiredRole) <= uint(Role.Uploader), 
-            "Invalid required role"
-        );
-
         // 创建新数据并存储
         storedData[dataCount] = CIDData({
             cid: cid,

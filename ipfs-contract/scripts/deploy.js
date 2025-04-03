@@ -30,10 +30,10 @@ async function main() {
 
    // 写入到配置文件
    const configPath = path.join(__dirname, "../../chat/src/lib/contract/config.ts");
-     const configContent = `export const CONTRACT_ADDRESS = "${deployedAddress};"
+     const configContent = `export const CONTRACT_ADDRESS = "${deployedAddress}"
 export const NETWORK = {
   name: "localhost",
-  chainId: 31337, // Hardhat 本地网络的默认 Chain ID
+  chainId: 1337, // Hardhat 本地网络的默认 Chain ID
   rpcUrl: "http://127.0.0.1:8545", // Hardhat 本地网络的默认 RPC 地址
 };`;
         fs.writeFileSync(configPath, configContent);
