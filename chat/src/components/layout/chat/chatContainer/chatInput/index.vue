@@ -39,22 +39,27 @@ import { Paperclip } from 'lucide-vue-next'
 import { sendMessageToIPFS, uploadFileToIPFSService } from '@/services/ipfsService'
 import { uploadToPinata } from '@/lib/ipfs'; // 自动适配环境
 import { storeCID } from "@/lib/contract"; // 用于与区块链交互
+import {hasRole} from "@/lib/contract";
 import { useUserStore } from '@/stores/user'
+import {UserRoles} from '@/common/contract/constant';
+import {getData} from '@/lib/contract/inter';
+import {CONTRACT_ADDRESS} from '@/lib/contract/config'
 const chatStore = useChatStore()
 const { toast } = useToast()
 const message = ref('')
 const isUploading = ref(false)
 const currentUser = ref(JSON.parse(localStorage.getItem("currentUser") || "{}"));
 const userStore =useUserStore()
+//const receiverId = userStore.getUserBySocketId(chatStore.currentSessionId!)?.name; // 当前会话的接收者 ID
 
 
 // 发送消息到后端的 IPFS 接口
 async function uploadMessageToIPFS(content: string,uploader: string): Promise<string> {
   const blob = new Blob([content], { type: 'text/plain' });
   const file = new File([blob], 'message.txt', { type: 'text/plain' });
-  const receiverId = userStore.getUserBySocketId(chatStore.currentSessionId!)?.name; // 当前会话的接收者 ID
+ 
   
-
+  const receiverId=userStore.getUserBySocketId(chatStore.currentSessionId!)?.name
   const formData = new FormData();
   formData.append('file', file);
   formData.append('uploader', uploader);
@@ -84,10 +89,23 @@ const handleSendMessage = async () => {
       const cid = await uploadMessageToIPFS(message.value.trim(),currentUser.value.name);
       const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${cid}`;
       const metadata = 'Message|${new Date().toISOString()}'
+
+     /*  hasRole(currentUser.value.name!,UserRoles.ADMIN)
+      hasRole(currentUser.value.name!,UserRoles.UPLOADER)
+      hasRole(currentUser.value.name!,UserRoles.VIEWER) */
+      //getData(0);
+      console.log("contract address:",CONTRACT_ADDRESS)
+      console.log("senderID:"+currentUser.value.name);
+      console.log("1receiverSessionID:"+chatStore.currentSessionId)
+      console.log(userStore.getUserBySocketId(chatStore.currentSessionId))
+      console.log(userStore.getUserBySocketId(chatStore.currentSessionId)?.name)
+      const receiverId=userStore.getUserBySocketId(chatStore.currentSessionId)?.name
+      //console.log("receiverID:"+receiverId)
       // 2. 将 CID 存储到区块链
-    await storeCID(cid,metadata); // 调用区块链交互逻辑，存储 CID 和类型
+    await storeCID(cid,metadata,receiverId!,UserRoles.UPLOADER); // 调用区块链交互逻辑，存储 CID 和类型
 
       chatStore.sendTextMessage(`[IPFS] ${message.value.trim()} (${ipfsUrl})`);
+      console.log("第二次receiverID:"+receiverId)
       message.value = '';
     } catch (error) {
       console.error('消息发送失败:', error);
@@ -131,9 +149,10 @@ const handleFileChange = async (e: Event) => {
     return;
   }
 
+  const receiverId=userStore.getUserBySocketId(chatStore.currentSessionId)?.name
   try {
     isUploading.value = true;
-    const receiverId = userStore.getUserBySocketId(chatStore.currentSessionId!)?.name; // 当前会话的接收者 ID
+  
   
     const formData = new FormData();
     formData.append('file', file);
@@ -153,8 +172,10 @@ const handleFileChange = async (e: Event) => {
     const result = await response.json();
     const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`;
     const metadata = `File|${new Date().toISOString()}`;
+
+    
      // 2. 将 CID 存储到区块链
-     await storeCID(result.IpfsHash,metadata); // 调用区块链交互逻辑，存储 CID 和类型
+     await storeCID(result.IpfsHash,metadata,receiverId!,UserRoles.UPLOADER); // 调用区块链交互逻辑，存储 CID 和类型
 
     chatStore.sendTextMessage(`[文件已上传至 IPFS] ${file.name} (${ipfsUrl})`);
   } catch (error) {

@@ -9,6 +9,10 @@ async function main() {
   // 部署合约
   const storageContract = await StorageContract.deploy();
   await storageContract.waitForDeployment();
+  
+  //查看合约部署者
+  const [deployer] = await ethers.getSigners(); // 获取部署合约的钱包地址
+  console.log("合约部署者地址:", deployer.address); // 打印出合约的部署者
 
   // 获取部署地址
   const deployedAddress = await storageContract.getAddress();
@@ -25,10 +29,16 @@ async function main() {
 
 
    // 写入到配置文件
-   const configPath = path.join(__dirname, "../chat/src/lib/contract/config.ts");
-     const configContent = `
-        export const CONTRACT_ADDRESS = "${deployedAddress}"`;
+   const configPath = path.join(__dirname, "../../chat/src/lib/contract/config.ts");
+     const configContent = `export const CONTRACT_ADDRESS = "${deployedAddress};"
+export const NETWORK = {
+  name: "localhost",
+  chainId: 31337, // Hardhat 本地网络的默认 Chain ID
+  rpcUrl: "http://127.0.0.1:8545", // Hardhat 本地网络的默认 RPC 地址
+};`;
+        fs.writeFileSync(configPath, configContent);
     console.log("CONTRACT_ADDRESS已更新到前端");
+
 }
 
 main()
