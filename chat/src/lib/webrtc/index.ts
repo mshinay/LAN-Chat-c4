@@ -5,6 +5,7 @@ import { useChatStore } from '@/stores/chat'
 import { logger } from '../utils/logger'
 import { encodeMessage, decodeMessage, generateBlobURL } from '../utils/file'
 import type { FileTransferProgress } from '@/types/file'
+import { useToast } from '@/components/ui/toast'
 
 
 export class WebRTCServices {
@@ -153,6 +154,31 @@ export class WebRTCServices {
                 }
                 const data = JSON.parse(event.data)
                 console
+
+                 //额外添加的
+                if (data.type === 'ping') {
+                    // 回复 pong
+                    const pong = JSON.stringify({ type: 'pong', timestamp: Date.now() })
+                    dataChannel.send(pong)
+                    return
+                }
+        
+                if (data.type === 'pong') {
+                    const now = Date.now()
+                    const latency = now - data.timestamp
+                    console.log(`🌐 Ping-Pong 延迟: ${latency}ms from ${socketId}`)
+                
+                    // Vue 中弹出 Toast（这里需要你把 useToast 引到这个文件中）
+                    const { toast } = useToast()
+                    toast({
+                        title: 'Ping-Pong 成功',
+                        description: `延迟为 ${latency}ms 来自 ${socketId}`,
+                    })
+                    console.log(`延迟为 ${latency}ms 来自 ${socketId}`)
+                    return
+                }
+                //额外添加的
+
                 // 处理文件传输控制消息
                 if (data.type === 'file-meta') {
                     this.handleFileMetadata(socketId, data)
@@ -175,6 +201,21 @@ export class WebRTCServices {
 
         this.dataChannels.set(socketId, dataChannel)
         return dataChannel
+    }
+
+    //额外添加，测试ping
+    public sendPing(socketId: string) {
+        const dataChannel = this.dataChannels.get(socketId)
+        if (dataChannel?.readyState === 'open') {
+            const pingMessage = {
+                type: 'ping',
+                timestamp: Date.now()
+            }
+            dataChannel.send(JSON.stringify(pingMessage))
+            logger.debug(`Sent ping to ${socketId}`)
+        } else {
+            logger.warn(`Cannot send ping: data channel not open for ${socketId}`)
+        }
     }
 
     // 发起连接

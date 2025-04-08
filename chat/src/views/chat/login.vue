@@ -32,7 +32,7 @@ async function handleLogin() {
           
          
         
-         
+          //await delay(500000);    
     window.location.href = "/chat"; // 跳转到聊天页面
 
 

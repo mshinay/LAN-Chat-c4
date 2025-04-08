@@ -55,3 +55,7 @@ coverage
 # Misc
 .DS_Store
 Thumbs.db 
+
+server/test
+ipfs-contract/test
+server/test-data

@@ -4,6 +4,8 @@ import { SocketEvents } from '../types/socket';
 import { Services } from '../services';
 import { logger } from '../utils/logger';
 import jwt from "jsonwebtoken";
+import { countMessage, startMonitoring } from '../socket/monitor';
+
 
 const JWT_SECRET = "your_jwt_secret";
 
@@ -13,6 +15,9 @@ export const setupSocketIO = (io: Server, services: Services) => {
    
 
     logger.info('Setting up Socket.IO server');
+
+     // ✅ 启动服务器性能监控
+     startMonitoring();
 
 
     // 用户加入连接
@@ -86,6 +91,7 @@ export const setupSocketIO = (io: Server, services: Services) => {
 
         // 客户端发送 offer
         socket.on(SocketEvents.WebRTCOffer, (data: { targetId: string, offer: RTCSessionDescriptionInit }) => {
+            countMessage(); // 统计一次
             const { targetId, offer } = data;
             if (userService.getUser(targetId)) {
                 socket.to(targetId).emit(SocketEvents.WebRTCOffer, {
@@ -100,6 +106,7 @@ export const setupSocketIO = (io: Server, services: Services) => {
 
         // 客户端发送 answer
         socket.on(SocketEvents.WebRTCAnswer, (data: { targetId: string, answer: RTCSessionDescriptionInit }) => {
+            countMessage(); // 统计一次
             const { targetId, answer } = data;
             if (userService.getUser(targetId)) {
                 socket.to(targetId).emit(SocketEvents.WebRTCAnswer, {
@@ -114,6 +121,7 @@ export const setupSocketIO = (io: Server, services: Services) => {
 
         // 客户端 ICE 候选者
         socket.on(SocketEvents.WebRTCICECandidate, (data: { targetId: string, candidate: RTCIceCandidate }) => {
+            countMessage(); // 统计一次
             const { targetId, candidate } = data;
             if (userService.getUser(targetId)) {
                 socket.to(targetId).emit(SocketEvents.WebRTCICECandidate, {

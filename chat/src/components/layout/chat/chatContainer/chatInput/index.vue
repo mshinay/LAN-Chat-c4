@@ -26,6 +26,10 @@
  
      <!-- 文件输入框（隐藏） -->
      <input type="file" ref="fileInput" class="hidden" @change="handleFileChange" />
+
+     <Button @click="handleManualPing" variant="outline" :disabled="!chatStore.currentSessionId">
+  手动 Ping
+</Button>
    </div>
  </template>
  
@@ -43,7 +47,7 @@
  import {retrieveCID} from "@/lib/contract";
  import { useUserStore } from '@/stores/user'
  import {UserRoles} from '@/common/contract/constant';
- //import {getData} from '@/lib/contract/inter';
+import { webRTCService } from '@/lib/webrtc'
  import {CONTRACT_ADDRESS} from '@/lib/contract/config'
  const chatStore = useChatStore()
  const { toast } = useToast()
@@ -196,5 +200,23 @@
      }
    }
  }
+
+
+ const handleManualPing = () => {
+  const socketId = chatStore.currentSessionId;
+  const receiver = userStore.getUserBySocketId(socketId!)?.name;
+
+  if (!socketId) return;
+
+  // 发送 WebRTC Ping 消息
+  webRTCService.sendPing(socketId);
+
+  toast({
+    title: "Ping 已发送",
+    description: `已向 ${receiver || '未知用户'} 发送 Ping 请求`,
+  });
+  
+};
+
  </script>
  
