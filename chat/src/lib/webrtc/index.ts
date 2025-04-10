@@ -7,7 +7,7 @@ import { encodeMessage, decodeMessage, generateBlobURL } from '../utils/file'
 import type { FileTransferProgress } from '@/types/file'
 import { useToast } from '@/components/ui/toast'
 import { useUserStore } from '@/stores/user'
-
+import { uploadToIPFS } from '@/lib/ipfs/ipfsFileupload' // 你自己封装的上传函数
 
 export class WebRTCServices {
     private peerConnections: Map<string, RTCPeerConnection> = new Map()
@@ -320,6 +320,8 @@ export class WebRTCServices {
 
     // 发送文件
     async sendFile(socketId: string, file: File): Promise<boolean> {
+        const userStore =useUserStore()
+        const chatStore = useChatStore()
         const dataChannel = this.dataChannels.get(socketId)
         if (!dataChannel || dataChannel.readyState !== 'open') {
             logger.error(`Cannot send file: data channel not open for ${socketId}`)
@@ -327,19 +329,28 @@ export class WebRTCServices {
         }
 
         try {
-            // 生成唯一的文件ID
-            const fileId = `${Date.now()}-${file.name}`
+            // 上传到 IPFS 并获取 CID
+        const {cid,gatewayUrl} = await uploadToIPFS(file, {
+            fileName: file.name,
+            uploader: userStore.getUserBySocketId(this.localSocketId)?.name!,
+            receiverId: userStore.getUserBySocketId(socketId)?.name ?? socketId
+          });
 
-            // 发送文件元数据
-            const metaData = {
-                type: 'file-meta',
-                fileId,
-                fileName: file.name,
-                fileSize: file.size,
-                fileType: file.type
-            }
+        // 生成唯一的文件ID
+        const fileId = `${Date.now()}-${file.name}`
 
-            dataChannel.send(JSON.stringify(metaData))
+        // 发送文件元数据，附加 CID
+        const metaData = {
+            type: 'file-meta',
+            fileId,
+            fileName: file.name,
+            fileSize: file.size,
+            fileType: file.type,
+            gatewayUrl
+                // ✅ 新增字段
+        }
+
+        dataChannel.send(JSON.stringify(metaData))
 
             // 创建文件传输进度对象
             const progress: FileTransferProgress = {
@@ -377,23 +388,23 @@ export class WebRTCServices {
                 progress.progress = Math.floor((offset / data.length) * 100)
             }
 
-            // 发送完成信号
-            const completeSignal = {
-                type: 'file-complete',
-                fileId,
-                fileName: file.name,
-                fileSize: file.size
-            }
+             // 发送完成信号，也携带 CID
+        const completeSignal = {
+            type: 'file-complete',
+            fileId,
+            fileName: file.name,
+            fileSize: file.size,
+            gatewayUrl // ✅ 新增字段
+        }
 
-            dataChannel.send(JSON.stringify(completeSignal))
+        dataChannel.send(JSON.stringify(completeSignal))
 
             // 更新状态为完成
             progress.status = 'completed'
             progress.progress = 100
 
             // 创建文件消息并添加到聊天
-            const userStore =useUserStore()
-            const chatStore = useChatStore()
+           
             const fileMessage: FileMessage = {
                 id: fileId,
                 type: 'file',
@@ -403,9 +414,9 @@ export class WebRTCServices {
                 fileName: file.name,
                 fileSize: file.size,
                 fileType: file.type,
-                url: URL.createObjectURL(file)
+                url: gatewayUrl // ✅ 使用CID生成公共URL
             }
-
+    
             chatStore.sendMessage(socketId, JSON.stringify(fileMessage))
 
             return true
@@ -456,7 +467,7 @@ export class WebRTCServices {
 
     // 处理文件传输完成
     private async handleFileComplete(socketId: string, data: any) {
-        const { fileId, fileName, fileSize } = data
+        const { fileId, fileName, fileSize, gatewayUrl } = data
 
         const progress = this.fileTransfers.get(fileId)
         const chunks = this.fileChunks.get(fileId)
@@ -500,7 +511,7 @@ export class WebRTCServices {
                 fileName,
                 fileSize,
                 fileType: mimeType,
-                url: blobUrl
+                url: gatewayUrl  // ✅ 如果有 CID 用 IPFS 地址
             }
             console.log('fileMessage', fileMessage)
             chatStore.receiveMessage(socketId, fileMessage)
