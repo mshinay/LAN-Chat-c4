@@ -27,9 +27,11 @@
      <!-- 文件输入框（隐藏） -->
      <input type="file" ref="fileInput" class="hidden" @change="handleFileChange" />
 
-     <Button @click="handleManualPing" variant="outline" :disabled="!chatStore.currentSessionId">
+     <Button @click="uploadCurrentSessionMessagesToIPFS" :disabled="!chatStore.currentSessionId">上链</Button>
+
+    <!--  <Button @click="handleManualPing" variant="outline" :disabled="!chatStore.currentSessionId">
   手动 Ping
-</Button>
+</Button> -->
    </div>
  </template>
  
@@ -49,6 +51,7 @@
  import {UserRoles} from '@/common/contract/constant';
 import { webRTCService } from '@/lib/webrtc'
  import {CONTRACT_ADDRESS} from '@/lib/contract/config'
+ import { uploadCurrentSessionMessagesToIPFS } from './ipfsFunction' 
  const chatStore = useChatStore()
  const { toast } = useToast()
  const message = ref('')
@@ -83,35 +86,32 @@ import { webRTCService } from '@/lib/webrtc'
    const result = await response.json();
    return result.IpfsHash; // 返回 CID
  }
- 
- 
+
  // 发送消息
  const handleSendMessage = async () => {
    if (chatStore.currentSessionId && message.value.trim() !== '') {
      try {
        isUploading.value = true;
  
-       const cid = await uploadMessageToIPFS(message.value.trim(),currentUser.value.name);
-       const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${cid}`;
-       const metadata = 'Message|${new Date().toISOString()}'
+       //const cid = await uploadMessageToIPFS(message.value.trim(),currentUser.value.name);
+       //const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${cid}`;
+       //const metadata = 'Message|${new Date().toISOString()}'
  
-      /*  hasRole(currentUser.value.name!,UserRoles.ADMIN)
-       hasRole(currentUser.value.name!,UserRoles.UPLOADER)
-       hasRole(currentUser.value.name!,UserRoles.VIEWER) */
-       //getData(0);
-       console.log("contract address:",CONTRACT_ADDRESS)
+      
+      /*  console.log("contract address:",CONTRACT_ADDRESS)
        console.log("senderID:"+currentUser.value.name);
        console.log("1receiverSessionID:"+chatStore.currentSessionId)
        console.log(userStore.getUserBySocketId(chatStore.currentSessionId))
        console.log(userStore.getUserBySocketId(chatStore.currentSessionId)?.name)
-       console.log(retrieveCID(1))
-       const receiverId=userStore.getUserBySocketId(chatStore.currentSessionId)?.name
-       //console.log("receiverID:"+receiverId)
+       console.log(retrieveCID(1)) */
+       console.log(chatStore.currentSession?.messages);
+       
        // 2. 将 CID 存储到区块链
-     await storeCID(cid,metadata,receiverId!,UserRoles.UPLOADER); // 调用区块链交互逻辑，存储 CID 和类型
+     //await storeCID(cid,metadata,receiverId!,UserRoles.UPLOADER); // 调用区块链交互逻辑，存储 CID 和类型
  
-       chatStore.sendTextMessage(`[IPFS] ${message.value.trim()} (${ipfsUrl})`);
-       console.log("第二次receiverID:"+receiverId)
+       //chatStore.sendTextMessage(`[IPFS] ${message.value.trim()} (${ipfsUrl})`);
+       chatStore.sendTextMessage(message.value.trim());
+       
        message.value = '';
      } catch (error) {
        console.error('消息发送失败:', error);
@@ -155,12 +155,12 @@ import { webRTCService } from '@/lib/webrtc'
      return;
    }
  
-   const receiverId=userStore.getUserBySocketId(chatStore.currentSessionId)?.name
+   //const receiverId=userStore.getUserBySocketId(chatStore.currentSessionId)?.name
    try {
      isUploading.value = true;
    
    
-     const formData = new FormData();
+     /* const formData = new FormData();
      formData.append('file', file);
      formData.append('uploader', currentUser.value.name)
      formData.append('receiverId',receiverId || "anonymous")
@@ -182,8 +182,19 @@ import { webRTCService } from '@/lib/webrtc'
      
       // 2. 将 CID 存储到区块链
       await storeCID(result.IpfsHash,metadata,receiverId!,UserRoles.UPLOADER); // 调用区块链交互逻辑，存储 CID 和类型
- 
-     chatStore.sendTextMessage(`[文件已上传至 IPFS] ${file.name} (${ipfsUrl})`);
+  */
+     //chatStore.sendTextMessage(`[文件已上传至 IPFS] ${file.name} (${ipfsUrl})`);
+     // 发送文件
+    const success = await chatStore.sendFile(file)
+
+    if (success) {
+    } else {
+      toast({
+      title: '文件上传失败',
+      description: '请检查连接并重试',
+      variant: 'destructive',
+    })
+  }
    } catch (error) {
      console.error('文件上传失败:', error);
      toast({
@@ -202,7 +213,7 @@ import { webRTCService } from '@/lib/webrtc'
  }
 
 
- const handleManualPing = () => {
+ /* const handleManualPing = () => {
   const socketId = chatStore.currentSessionId;
   const receiver = userStore.getUserBySocketId(socketId!)?.name;
 
@@ -216,7 +227,7 @@ import { webRTCService } from '@/lib/webrtc'
     description: `已向 ${receiver || '未知用户'} 发送 Ping 请求`,
   });
   
-};
+}; */
 
  </script>
  

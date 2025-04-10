@@ -1,6 +1,7 @@
 export interface BaseMessage {
     id: string          // 消息唯一ID
     senderId: string    // 发送者ID（socketId）
+    senderName:string   //发送者name
     timestamp: string   // 发送时间戳
     type: 'text' | 'file'  // 消息类型
 }

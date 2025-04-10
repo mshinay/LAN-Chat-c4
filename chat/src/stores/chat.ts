@@ -4,6 +4,8 @@ import type { Message, ChatSession, TextMessage, FileMessage } from '@/types/mes
 import { webRTCService } from '@/lib/webrtc'
 import { logger } from '@/lib/utils/logger'
 import { getRandomId } from '@/lib/utils/random'
+import { useUserStore } from '@/stores/user'
+//
 
 // 最大消息历史记录数
 const MAX_MESSAGES_PER_SESSION = 100
@@ -56,10 +58,13 @@ export const useChatStore = defineStore('chat', () => {
 
     // 发送文本消息
     const sendTextMessage = async (content: string) => {
+        const userStore =useUserStore()
+        
         if (!currentSessionId.value || !content.trim()) return
         const message: TextMessage = {
             id: getRandomId(),
             content: content.trim(),
+            senderName: userStore.getUserBySocketId(webRTCService.localSocketId)?.name?? webRTCService.localSocketId,
             senderId: webRTCService.localSocketId,
             timestamp: new Date().toISOString(),
             type: 'text'

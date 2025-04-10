@@ -6,6 +6,7 @@ import { logger } from '../utils/logger'
 import { encodeMessage, decodeMessage, generateBlobURL } from '../utils/file'
 import type { FileTransferProgress } from '@/types/file'
 import { useToast } from '@/components/ui/toast'
+import { useUserStore } from '@/stores/user'
 
 
 export class WebRTCServices {
@@ -391,11 +392,13 @@ export class WebRTCServices {
             progress.progress = 100
 
             // 创建文件消息并添加到聊天
+            const userStore =useUserStore()
             const chatStore = useChatStore()
             const fileMessage: FileMessage = {
                 id: fileId,
                 type: 'file',
                 senderId: this.localSocketId,
+                senderName: userStore.getUserBySocketId(this.localSocketId)?.name ?? this.localSocketId,
                 timestamp: new Date().toISOString(),
                 fileName: file.name,
                 fileSize: file.size,
@@ -486,11 +489,13 @@ export class WebRTCServices {
             progress.progress = 100
 
             // 创建文件消息并添加到聊天
+            const userStore =useUserStore()
             const chatStore = useChatStore()
             const fileMessage: FileMessage = {
                 id: fileId,
                 type: 'file',
                 senderId: socketId,
+                senderName: userStore.getUserBySocketId(socketId)?.name ?? socketId,
                 timestamp: new Date().toISOString(),
                 fileName,
                 fileSize,

@@ -17,6 +17,7 @@
     "@helia/unixfs": "^5.0.0",
     "@multiformats/multiaddr": "^12.4.0",
     "@pinata/sdk": "^2.1.0",
+    "@soerenmartius/vue3-clipboard": "^0.1.2",
     "@tanstack/vue-table": "^8.21.2",
     "@vee-validate/zod": "^4.15.0",
     "@vueuse/core": "^13.0.0",
