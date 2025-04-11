@@ -32,6 +32,12 @@
     <!--  <Button @click="handleManualPing" variant="outline" :disabled="!chatStore.currentSessionId">
   手动 Ping
 </Button> -->
+<button
+        @click="toggleSimulation"
+        class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+        {{ isSimulating ? '停止 V2V 模拟' : '开始 V2V 模拟' }}
+      </button>
    </div>
  </template>
  
@@ -40,19 +46,21 @@
  import { Input } from '@/components/ui/input'
  import { useChatStore } from '@/stores/chat'
  import { useToast } from '@/components/ui/toast/use-toast'
- import { computed, ref } from 'vue'
+ import { computed, ref,onUnmounted } from 'vue'
  import { Paperclip } from 'lucide-vue-next'
  //import { sendMessageToIPFS, uploadFileToIPFSService } from '@/services/ipfsService'
  //import { uploadToPinata } from '@/lib/ipfs'; // 自动适配环境
  import { storeCID } from "@/lib/contract"; // 用于与区块链交互
- import {hasRole} from "@/lib/contract";
- import {retrieveCID} from "@/lib/contract";
+import { getRandomId } from '@/lib/utils/random'
+import type { Message } from '@/types/message'
  import { useUserStore } from '@/stores/user'
  import {UserRoles} from '@/common/contract/constant';
 import { webRTCService } from '@/lib/webrtc'
  import {CONTRACT_ADDRESS} from '@/lib/contract/config'
  import { uploadCurrentSessionMessagesToIPFS } from './ipfsFunction' 
+ import { generateVehicleStatus } from '@/lib/v2vSimulator'
  const chatStore = useChatStore()
+
  const { toast } = useToast()
  const message = ref('')
  const isUploading = ref(false)
@@ -92,24 +100,7 @@ import { webRTCService } from '@/lib/webrtc'
    if (chatStore.currentSessionId && message.value.trim() !== '') {
      try {
        isUploading.value = true;
- 
-       //const cid = await uploadMessageToIPFS(message.value.trim(),currentUser.value.name);
-       //const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${cid}`;
-       //const metadata = 'Message|${new Date().toISOString()}'
- 
-      
-      /*  console.log("contract address:",CONTRACT_ADDRESS)
-       console.log("senderID:"+currentUser.value.name);
-       console.log("1receiverSessionID:"+chatStore.currentSessionId)
-       console.log(userStore.getUserBySocketId(chatStore.currentSessionId))
-       console.log(userStore.getUserBySocketId(chatStore.currentSessionId)?.name)
-       console.log(retrieveCID(1)) */
        console.log(chatStore.currentSession?.messages);
-       
-       // 2. 将 CID 存储到区块链
-     //await storeCID(cid,metadata,receiverId!,UserRoles.UPLOADER); // 调用区块链交互逻辑，存储 CID 和类型
- 
-       //chatStore.sendTextMessage(`[IPFS] ${message.value.trim()} (${ipfsUrl})`);
        chatStore.sendTextMessage(message.value.trim());
        
        message.value = '';
@@ -155,36 +146,9 @@ import { webRTCService } from '@/lib/webrtc'
      return;
    }
  
-   //const receiverId=userStore.getUserBySocketId(chatStore.currentSessionId)?.name
+   
    try {
      isUploading.value = true;
-   
-   
-     /* const formData = new FormData();
-     formData.append('file', file);
-     formData.append('uploader', currentUser.value.name)
-     formData.append('receiverId',receiverId || "anonymous")
- 
-     const response = await fetch('http://localhost:3000/api/ipfs/upload', {
-       method: 'POST',
-       body: formData,
-     });
- 
-     if (!response.ok) {
-       const errorText = await response.text();
-       throw new Error(`文件上传失败: ${errorText}`);
-     }
- 
-     const result = await response.json();
-     const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`;
-     const metadata = `File|${new Date().toISOString()}`;
- 
-     
-      // 2. 将 CID 存储到区块链
-      await storeCID(result.IpfsHash,metadata,receiverId!,UserRoles.UPLOADER); // 调用区块链交互逻辑，存储 CID 和类型
-  */
-     //chatStore.sendTextMessage(`[文件已上传至 IPFS] ${file.name} (${ipfsUrl})`);
-     // 发送文件
     const success = await chatStore.sendFile(file)
 
     if (success) {
@@ -229,5 +193,60 @@ import { webRTCService } from '@/lib/webrtc'
   
 }; */
 
+function startV2VSimulationForCurrentUser() {
+  const intervalMs = 2000 // 发送间隔
+
+  const timer = setInterval(() => {
+    if (!chatStore.currentSessionId) return
+
+    const vehicleId = currentUser.value.name // 用户 id 作为车辆 id
+    const message: Message = {
+      id: getRandomId(),
+      content: generateVehicleStatus(vehicleId),
+      senderId: currentUser.value.socketId,
+      senderName: vehicleId,
+      timestamp: new Date().toISOString(),
+      type: 'text'
+    }
+    console.log(message)
+    chatStore.sendTextMessage(message.content)}, intervalMs)
+    // 添加到当前会话消息列表
+   /*  chatStore.addMessageToSession(chatStore.currentSessionId, message)
+
+    // 发送 WebRTC 消息
+    chatStore.sendMessage(chatStore.currentSessionId, JSON.stringify(message))
+  }, intervalMs) */
+
+  return () => clearInterval(timer)
+}
+
+const isSimulating = ref(false)
+  
+  // 保存定时器清除函数
+  let stopSim: (() => void) | null = null
+
+function toggleSimulation() {
+  if (!isSimulating.value) {
+    if (!chatStore.currentSessionId) {
+      toast({
+        title: '未选择会话',
+        description: '请先选择聊天对象再开始模拟',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    stopSim = startV2VSimulationForCurrentUser()
+    isSimulating.value = true
+  } else {
+    stopSim?.()
+    stopSim = null
+    isSimulating.value = false
+  }
+}
+
+onUnmounted(() => {
+  stopSim?.()
+})
  </script>
  

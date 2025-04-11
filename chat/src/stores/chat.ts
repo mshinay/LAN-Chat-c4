@@ -165,6 +165,7 @@ export const useChatStore = defineStore('chat', () => {
         unreadNewMessage,
         sessions,
         sessionList,
+        addMessageToSession,
         getOrCreateSession,
         selectSession,
         sendTextMessage,

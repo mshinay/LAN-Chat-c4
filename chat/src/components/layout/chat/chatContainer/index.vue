@@ -43,6 +43,7 @@ watch(
   (newMessage) => {
     if (newMessage) {
       const sender = userStore.onlineUsers.find((user) => user.socketId === newMessage.senderId)
+      //let user=userStore.onlineUsers.find((user)
       toast({
         title: sender?.name || '未知用户',
         description: newMessage.type === 'text' ? newMessage.content : newMessage.fileName,

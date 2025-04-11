@@ -49,7 +49,9 @@ LAN-Chat 是一个基于 WebRTC 和 WebSocket 的局域网聊天应用，支持�
 
 ### 安装和运行
 
-#### 待添加合约的配置
+    0.配置pinata信息
+    在server/.env.pinataconfig.public填写自己pinata workspace的信息
+
 
 1. 克隆仓库
 
@@ -74,13 +76,62 @@ npm install
 npm run dev
 ```
 
-4. 在浏览器中访问
+4.按照合约依赖
+```bash
+cd ../ipfs-contract
+npm install
+```
+
+4.1启动合约本地节点
+```bash
+cd contracts
+npx hardhat node
+```
+
+4.2部署合约到本地网络（使用另一个cmd）
+```bash
+npx hardhat run scripts/deploy.js --network localhost
+```
+
+5. 在浏览器中访问
 
 ```
 http://localhost:5173
 ```
 
-### 项目部署
+### 关于hardhat本地网络
+在启动合约本地节点后（4.1），cmd会出现20个钱包账户，将其Private Key导入进meatmask里就可以用账户里的测试币进行上链功能
+![alt text](./md_pic/image.png)
+
+### 关于metamask
+
+#### 1.在Chrome Firefox Edge等浏览器里下载metamask插件
+![alt text](./md_pic/image1.png)
+
+#### 2.按照教程注册一个用户
+
+#### 3.导入hardhat本地账户密钥
+![alt text](./md_pic/image2.png)
+![alt text](./md_pic/image3.png)
+![alt text](./md_pic/image4.png)
+
+#### 4.添加并切换hardhat本地网络
+![alt text](./md_pic/image5.png)
+![alt text](./md_pic/image6.png)
+
+##### 本地网络数据如下
+![alt text](./md_pic/image7.png)
+
+
+| 字段                | 值                          |
+|---------------------|-----------------------------|
+| Network name        | `Hardhat Local` (可自定义)   |
+| New RPC URL         | `http://127.0.0.1:8545`      |
+| Chain ID            | `1337` (Hardhat 默认链ID)   |
+| Currency symbol     | `ETH` (或其他自定义代币符号)  |
+| Block explorer URL  | 留空（本地网络无需浏览器）      |
+
+### 项目部署（这个不用看）
 
 ```bash
 cd LAN-Chat/chat
