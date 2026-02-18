@@ -15,7 +15,7 @@ export async function uploadCurrentSessionMessagesToIPFS() {
     console.warn('无当前会话，无法上传')
     return
   }
-  
+  console.log("1312321");
   const uploader = userStore.getUserBySocketId(webRTCService.localSocketId)?.name ?? 'unknown'
   const receiver = userStore.getUserBySocketId(chatStore.currentSessionId!)?.name ?? 'anonymous'
 

@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-row justify-between px-8 py-4 h-20 border-b shadow-sm">
-    <!-- 左侧Logo部分 -->
-    <Logo brand-name="LAN Chat" des="点对点局域网聊天" :size="isMobile ? 'sm' : 'md'" />
+    <!-- 左侧Logo部分 点对点局域网聊天 LAN Chat -->
+    <Logo brand-name="Vehicle" des="" :size="isMobile ? 'sm' : 'md'" />
     <!-- 中间搜索部分 - 在移动端隐藏 -->
     <GlobalSearch class="hidden md:flex flex-1 justify-center" />
     <!-- 右侧用户信息和主题切换 -->

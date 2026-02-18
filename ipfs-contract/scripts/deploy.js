@@ -13,10 +13,20 @@ async function main() {
   //查看合约部署者
   const [deployer] = await ethers.getSigners(); // 获取部署合约的钱包地址
   console.log("合约部署者地址:", deployer.address); // 打印出合约的部署者
+   // 获取本地账户：第一个是部署者，后面的是其他账号
+  const accounts = await hre.ethers.getSigners();
 
   // 获取部署地址
   const deployedAddress = await storageContract.getAddress();
   console.log("StorageContract deployed to:", deployedAddress);
+
+   // ✅ 设置 accounts[1] 到 accounts[19] 为 Uploader 角色（1）
+  for (let i = 1; i <= 19; i++) {
+    const addr = accounts[i].address;
+    const tx = await storageContract.connect(deployer).setRole(addr, 1); // 1 = Uploader
+    await tx.wait();
+    console.log(`设置账户 ${addr} 为 Uploader`);
+  }
 
   // 获取合约 ABI
   const artifactPath = path.resolve(__dirname, "../artifacts/contracts/StorageContract.sol/StorageContract.json");

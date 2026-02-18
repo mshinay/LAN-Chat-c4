@@ -1,17 +1,17 @@
 <template>
   <div class="flex w-full items-center gap-1.5 px-6">
      <!-- 消息输入框 -->
-     <Input
+    <!--  <Input
        @keydown.enter="handleSendMessage"
        type="text"
        :placeholder="chatStore.currentSessionId ? '消息' : '选择一个用户以开始聊天'"
        v-model="message"
        :disabled="!chatStore.currentSessionId"
        autocomplete="off"
-     />
+     /> -->
  
      <!-- 文件上传按钮 -->
-     <Button
+    <!--  <Button
        variant="secondary"
        @click="handleUploadFile"
        :disabled="!chatStore.currentSessionId || isUploading"
@@ -19,10 +19,10 @@
        <Paperclip :class="[isUploading ? 'animate-spin' : '', 'hidden md:block']" />
        <span class="hidden md:block">{{ isUploading ? '上传中...' : '发送文件' }}</span>
        <Paperclip :class="['block md:hidden', isUploading ? 'animate-spin' : '']" />
-     </Button>
+     </Button> -->
  
-     <!-- 消息发送按钮 -->
-     <Button @click="handleSendMessage" :disabled="!chatStore.currentSessionId">发送</Button>
+     <!-- 消息发送按钮 --> 
+    <!--  <Button @click="handleSendMessage" :disabled="!chatStore.currentSessionId">发送</Button> -->
  
      <!-- 文件输入框（隐藏） -->
      <input type="file" ref="fileInput" class="hidden" @change="handleFileChange" />

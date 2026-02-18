@@ -71,7 +71,7 @@ contract StorageContract {
 
         // 检查全局 ACL 或角色权限
         require(
-           roles[msg.sender] == Role.Admin|| globalACL[id][msg.sender] && uint(roles[msg.sender]) <= uint(data.requiredRole), 
+           roles[msg.sender] == Role.Admin|| globalACL[id][msg.sender], //&& uint(roles[msg.sender]) <= uint(data.requiredRole), 
             "Access denied"
         );
 

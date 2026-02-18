@@ -1,7 +1,7 @@
 <template>
   <div class="h-screen flex items-center justify-center bg-gray-50">
       <div class="text-center">
-          <h2 class="mb-4 text-lg font-semibold">欢迎使用 LAN-Chat</h2>
+          <h2 class="mb-4 text-lg font-semibold">欢迎使用 Vehicle-communication</h2>
           <p class="mb-8 text-gray-600">请通过 MetaMask 登录以继续</p>
           <button
               @click="handleLogin"

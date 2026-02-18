@@ -15,7 +15,7 @@ export async function uploadCurrentSessionMessagesToIPFS() {
     console.warn('无当前会话，无法上传')
     return
   }
-  
+  console.log("一阶段");
   const uploader = userStore.getUserBySocketId(webRTCService.localSocketId)?.name ?? 'unknown'
   const receiver = userStore.getUserBySocketId(chatStore.currentSessionId!)?.name ?? 'anonymous'
 
@@ -33,7 +33,7 @@ export async function uploadCurrentSessionMessagesToIPFS() {
       }
     })
     .join('\n')
-
+console.log("二阶段");
   const blob = new Blob([content], { type: 'text/plain' })
   const file = new File([blob], `chat_${chatStore.currentSessionId}.txt`, { type: 'text/plain' })
 
@@ -46,7 +46,7 @@ export async function uploadCurrentSessionMessagesToIPFS() {
     method: 'POST',
     body: formData,
   })
-
+console.log("三阶段");
   if (!response.ok) {
     const errorText = await response.text()
     toast({
@@ -56,14 +56,15 @@ export async function uploadCurrentSessionMessagesToIPFS() {
     })
     return
   }
-
+console.log("四阶段");
   const result = await response.json()
   const cid = result.IpfsHash
   const metadata = 'Message|${new Date().toISOString()}'
   const receiverId=userStore.getUserBySocketId(chatStore.currentSessionId!)?.name
+  console.log("4.1阶段");
    // 2. 将 CID 存储到区块链
  await storeCID(cid,metadata,receiverId!,UserRoles.UPLOADER); // 调用区块链交互逻辑，存储 CID 和类型
-
+console.log("五阶段");
   toast({
     title: '上链成功',
     description: h(
@@ -78,6 +79,6 @@ export async function uploadCurrentSessionMessagesToIPFS() {
     duration: 5000,
 
   })
-
+console.log("六阶段");
   return cid
 }

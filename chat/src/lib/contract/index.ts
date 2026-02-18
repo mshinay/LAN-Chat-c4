@@ -31,14 +31,17 @@ export async function storeCID(
   receiver: string,
   requiredRole: number
 ) {
+   console.log("6.2阶段");
   const contract = await getContractInstance();
   
- 
+ console.log("7阶段");
   //const receiverAddress = ethers.getAddress(receiver);
   try {
+    console.log("8阶段");
     // 传递 `cid`, `metadata`, `receiver`, 和 `requiredRole`
     const tx = await contract.storeData(cid, metadata, receiver, requiredRole);
     console.log("发送交易中...");
+ console.log("9阶段");
     await tx.wait(); // 等待交易完成
     console.log("CID 存储成功:", cid);
   } catch (error) {
@@ -53,18 +56,22 @@ export async function storeCID(
 export async function retrieveCID(id: number) {
   try {
     const contract = await getContractInstance();
-
+    console.log("", id);
     // 调用合约的 `getData` 方法
     const data = await contract.getData(id);
 
     console.log("检索到的数据:", data);
-    return {
+     // 如果 data 是数组，就用解构处理
+     const [cid, metadata, uploader, receiver, requiredRole] = data;
+
+     return { cid, metadata, uploader, receiver, requiredRole };
+    /* return {
       cid: data.cid,
       metadata: data.metadata,
       uploader: data.uploader,
       receiver: data.receiver, // 新增：返回接收者地址
       requiredRole: data.requiredRole
-    };
+    }; */
   } catch (error) {
     console.error("检索 CID 失败:", error);
     throw error;
@@ -104,7 +111,7 @@ export async function isInACL(dataId: number, userAddress: string): Promise<bool
     const contract = await getContractInstance();
 
     // 调用合约的 `isInACL` 方法
-    const result = await contract.isInACL(dataId, userAddress);
+    const result = await contract.hasAccess(dataId, userAddress);
 
     console.log(`用户 ${userAddress} 是否在数据 ${dataId} 的 ACL 中:`, result);
     return result;

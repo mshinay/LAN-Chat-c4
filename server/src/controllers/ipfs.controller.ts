@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 import axios from 'axios';
 import FormData from 'form-data';
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env.pinataconfig.public' }); // 明确指定文件路径
+dotenv.config({ path: '.env.pinataconfig' }); // 明确指定文件路径
 
 
 // Pinata API 密钥
