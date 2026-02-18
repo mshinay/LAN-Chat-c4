@@ -9,8 +9,6 @@ dotenv.config({ path: '.env.pinataconfig' }); // 明确指定文件路径
 
 // Pinata API 密钥
 const PINATA_JWT = process.env.PINATA_JWT;
-const PINATA_API_KEY = process.env.PINATA_API_KEY;
-const PINATA_API_SECRET = process.env.PINATA_API_SECRET;
 
 export const uploadToPinata = async (req: Request, res: Response) => {
   try {

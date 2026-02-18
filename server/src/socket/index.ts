@@ -5,9 +5,7 @@ import { Services } from '../services';
 import { logger } from '../utils/logger';
 import jwt from "jsonwebtoken";
 import { countMessage, startMonitoring } from '../socket/monitor';
-
-
-const JWT_SECRET = "your_jwt_secret";
+import config from '../config';
 
 
 export const setupSocketIO = (io: Server, services: Services) => {
@@ -32,7 +30,7 @@ export const setupSocketIO = (io: Server, services: Services) => {
         }
           // 验证 JWT
     try {
-        const decoded = jwt.verify(token, JWT_SECRET) as { address: string };
+        const decoded = jwt.verify(token, config.JWT_SECRET) as { address: string };
         console.log(`User connected: ${decoded.address}`);
         socket.data.address = decoded.address; // 将钱包地址绑定到连接
       } catch (err) {
@@ -44,7 +42,7 @@ export const setupSocketIO = (io: Server, services: Services) => {
       let address = "Guest";
       if (token) {
           try {
-              const decoded = jwt.verify(token, JWT_SECRET) as { address: string };
+              const decoded = jwt.verify(token, config.JWT_SECRET) as { address: string };
               address = decoded.address;
               console.log(`MetaMask 用户连接成功：${address}`);
           } catch (err) {

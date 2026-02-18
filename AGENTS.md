@@ -41,7 +41,8 @@ Frontend test notes:
 - Start compiled app: `npm run start`
 - Build: `npm run build`
 - Test suite: `npm run test`
-- Lint (auto-fix): `npm run lint`
+- Lint (check only): `npm run lint`
+- Lint (auto-fix): `npm run lint:fix`
 
 Single-test commands (Jest):
 - Single file: `npx jest src/path/to/file.test.ts`
@@ -93,6 +94,7 @@ Backend (`server`) observed settings:
 - TypeScript `strict: true` (`server/tsconfig.json`).
 - Semicolons are common.
 - Indentation appears 2-4 spaces; keep edited files internally consistent.
+- ESLint is configured in `server/.eslintrc.cjs`.
 
 Contracts (`ipfs-contract`) observed settings:
 - Solidity uses 4-space indentation.
@@ -127,6 +129,7 @@ Contracts (`ipfs-contract`) observed settings:
 - Never commit secrets (JWT secrets, API tokens, private keys, wallet keys).
 - Keep environment values in env files loaded by backend config.
 - Treat `.env*` and key material as sensitive.
+- `server` requires `JWT_SECRET`; startup should fail fast if it is missing.
 
 ### Architecture and placement
 - Frontend code should stay under `chat/src/{components,views,stores,hooks,lib,types}`.

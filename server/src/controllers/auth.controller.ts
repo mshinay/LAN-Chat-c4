@@ -2,8 +2,7 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { verifyMessage } from "../utils/crypto"; // 验证签名的工具函数
 import { generateNonce, saveNonce, getNonce, clearNonce } from "../utils/nonceStore";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret"; // 从环境变量中读取
+import config from "../config";
 
 export class AuthController {
   // 获取 nonce
@@ -40,7 +39,7 @@ export class AuthController {
 
     clearNonce(address); // nonce 一次性使用
 
-    const token = jwt.sign({ address }, JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ address }, config.JWT_SECRET, { expiresIn: "1h" });
     res.json({ success: true, token });
   };
 }

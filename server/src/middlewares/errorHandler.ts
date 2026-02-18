@@ -9,7 +9,7 @@ export const errorHandler = (
     err: AppError,
     req: Request,
     res: Response,
-    next: NextFunction
+    _next: NextFunction
 ) => {
     // 默认为500内部服务器错误
     const statusCode = err.statusCode || 500;
